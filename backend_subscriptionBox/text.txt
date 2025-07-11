@@ -1,0 +1,932 @@
+6) User stories
+
+
+
+
+
+[DDVXY-3] Choose the language Created: 03/Jun/25 Updated: 03/Jun/25
+
+
+
+
+
+
+[DDVXY-5] Walkthrough Created: 03/Jun/25 Updated: 03/Jun/25
+
+
+
+
+
+
+[DDVXY-7] Welcome Login Created: 03/Jun/25 Updated: 03/Jun/25
+
+
+
+
+
+
+[DDVXY-9] Implement Login Created: 03/Jun/25 Updated: 03/Jun/25
+
+
+
+
+
+[DDVXY-13] Forgot Password Created: 03/Jun/25 Updated: 03/Jun/25
+
+
+
+
+    • There should be a "Resend Code" link with a 15-second timer (displayed as
+"00:15") and the text "Didn’t receive code?".
+    • When I enter the correct OTP and tap the "Verify" button, #Then I should be taken to the create new password screen.
+    • When I tap "Resend Code" after the timer expires,
+#Then a new OTP should be sent to my email, and the timer should reset.
+    3. Screen 3: Create New Password
+        ◦ Given I am on the create new password screen, #When the screen loads,
+#Then I should see fields for "New Password" and "Confirm Password" with the text "Create new password. Your new password must be unique from those previously used."
+        ◦ When I enter matching passwords and tap the "Reset Password" button, #Then I should be taken to the password changed confirmation screen.
+    4. Screen 4: Password Changed Confirmation
+        ◦ Given I am on the password changed confirmation screen, #When the screen loads,
+#Then I should see a green checkmark icon, the text "Password Changed! Your password has been successfully changed", and a "Back to Login" button.
+        ◦ When I tap the "Back to Login" button,
+#Then I should be taken back to the sign-in screen.
+    5. General
+        ◦ Each screen should have a back arrow at the top left to return to the previous screen.
+
+
+[DDVXY-17] Signup screen Created: 03/Jun/25 Updated: 03/Jun/25
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    a. Given I am on the sign-up screen,
+When I tap the "Select Account Type" dropdown,
+Then I should see options for "Individual" and "Business".
+    b. When I select an account type,
+Then the form should update based on the selected type.
+    3. Individual Sign-Up (Screen 1):
+        a. Given I select "Individual" as the account type,
+When I fill out the form,
+Then I should only see fields for profile photo, username, email, phone, account type, new password, and confirm password.
+        b. When I enter a valid username (e.g., "Redeemplus"),
+Then a green checkmark should appear next to the username field.
+        c. When I tap the "Continue" button after filling all required fields correctly,
+Then I should be taken to the next step (e.g., email/phone verification).
+    4. Business Sign-Up (Screen 2):
+        a. Given I select "Business" as the account type,
+When I fill out the form,
+Then I should see additional fields for business category and business location, along with the fields for profile photo, username, email, phone, account type, new password, and confirm password.
+        b. When I tap the "Select your business category" dropdown,
+Then I should be able to select a category.
+            i. Business category will be displayed on my profile page.
+        c. When I interact with the "Add Business Location" section,
+Then I should see a map with a pin at the specified location (e.g., "3235 Royal Ln, Mesa, New Jersey 34567") and fields for street (961), postal code (3033), and zone (400).
+        d. When I tap the "Continue" button after filling all required fields correctly,
+Then I should be taken to the next step.
+    5. Social Sign-Up Option:
+        a. Given I am on the sign-up screen,
+When I tap one of the social sign-up buttons (Google, Apple, or Facebook),
+Then I should be able to sign up using the selected social account.
+    6. Sign-In Link:
+        a. Given I am on the sign-up screen,
+When I tap the "Do you have an account? Sign in" link,
+Then I should be taken to the sign-in screen.
+
+
+[DDVXY-21] Category Selection at Signup Created: 03/Jun/25 Updated: 03/Jun/25
+
+
+
+
+
+[DDVXY-25] Verification and purchase plan Created: 03/Jun/25 Updated: 03/Jun/25
+
+
+
+
+    • Given I have entered the correct OTP and tapped "Verify Account", #When the verification is successful,
+#Then a modal should appear with the text "Registered Successfully", a green checkmark icon, and the email "Redeemplus@xsl***" (partially masked).
+    • The modal should also display the text "Your email address has been successfully verified" and a green "Continue To Subscription Plan" button.
+    • When I tap the "Continue To Subscription Plan" button,
+#Then I should be taken to the subscription plan selection screen (Screen 3).
+    3. Screen 3: Subscription Plan Selection
+        ◦ Given I am on the subscription plan selection screen, #When the screen loads,
+#Then I should see the title "Select Subscription Plan" and three plans options
+            1. Bronze
+            2. Silver
+            3. Gold
+        ◦ Client will provide the details for all plans.
+        ◦ When I tap the "Choose" button on a plan,
+#Then my account should be created with the selected plan, and I should be taken to the main app screen.
+        ◦ When I tap the back arrow on any screen, #Then I should be taken to the previous screen.
+        ◦ User will have also the skip option if they don’t want to select plan. If user tap on skip button, then popup will be asked “The free Bronze membership has been selected by default”. User will have the features accessible for free Bronze plan.
+    4. Plan features and price will be set later on
+
+
+[DDVXY-29] Home page Created: 03/Jun/25 Updated: 03/Jun/25
+
+Type:
+Story
+Priority:
+Low
+Reporter:
+Nisar
+Assignee:
+Deep Gopani
+Resolution:
+Unresolved
+Votes:
+0
+Labels:
+None
+Remaining Estimate:
+Not Specified
+Time Spent:
+Not Specified
+Original estimate:
+Not Specified
+
+Issue links:
+Part of
+
+Part of	DDVXY-30
+Backend Task - Home page
+To Do
+
+Part of	DDVXY-31
+Frontend Task - Home page
+To Do
+
+Part of	DDVXY-32
+Prototype Task - Home page
+To Do
+Automatic Task Creation:
+Backend Task, Frontend Task, Prototype Task
+
+
+
+Then I should see category tabs below the header: "RedeemPlus", "Buy 1, Get 1 free", “Discount”, "Package", and "24H Deals".
+    b. When the user taps on a category, they will be taken directly to the offer page. On that page, the selected category will be applied as the default filter.
+    c. User can also change the category from offer page
+    4. Offer Listings:
+        a. I have here two submenu 1) Nearby and 2) Subscribed.
+            i. When I tap on nearby, it shows my nearby offers.
+            ii. When I tap on subscribed, it shows the offers whose I have subscribed.
+        b. Given I am on the home screen, When I scroll through the screen, Then I should see a list of offers with the following details for each offer:
+            i. A thumbnail image.
+            ii. The provider name and rating (e.g., "Redeemplus • 4.8").
+            iii. A "Subscribe" label if applicable.
+            iv. The offer title (e.g., "Buy 1, Get 1 Free Iced Spanish Latte").
+            v. Offer details (e.g., "Available on any Mall of Qatar on Friday").
+            vi. A "Redeemable in Store Only" label.
+            vii. Delivery availability (e.g., "Delivery Available").
+            viii. Price details (e.g., "QR 32.50 QR 45.00").
+            ix. A pink "Redeem" button.
+            x. Save button: When I tap on save(Bookmark) button, offer will be saved in wishlist.
+        c. When I tap on three dot option menu, I will have popup screen that contains following options: (If I am business owner)
+            i. Edit offer
+            ii. Delete offer
+            iii. Share offer
+            iv. List in RedeemPlus Store - $5
+        d. When I tap on three dot option menu, I will have popup screen that contains following options: (If I am customer owner)
+            i. Share offer
+            ii. Unsubscribe
+            iii. Report this offer
+        e. Example offers to display:
+            i. "Buy 1, Get 1 Free Iced Spanish Latte" by Redeemplus.
+            ii. "48% Discount Nike Free Metcon 6" by Nike.
+            iii. "Package Deal Nike Free Metcon 6" by Car Rental.
+            iv. "24H Deal Seafood Open Buffet" by Little Sailor.
+    5. Sponsored Section:
+        a. Given I am on the home screen,
+When I scroll to the sponsored section,
+Then I should see a "Sponsored" label followed by additional offer listings with the same format as above.
+        b. This should be shown after 5 offers posted by users.
+    6. Navigation:
+        a. Given I am on the home screen,
+When I tap the "Redeem" button on an offer,
+Then I should be taken to the offer redemption screen.
+    b. When I tap the map icon,
+Then I should be taken to a map view showing offer locations.
+    c. When I tap a filter tab (e.g., "Buy 1, Get 1"),
+Then the offer list should update to show only offers matching that filter.
+    7. Bottom Navigation Bar:
+        a. Given I am on the home screen,
+When I view the bottom navigation bar,
+Then I should see icons for "Home", "Offers", "Post", "Notification", and "You", with "Home" highlighted as the active tab.
+
+
+[DDVXY-33] View offer detail Created: 03/Jun/25 Updated: 03/Jun/25
+
+
+
+
+
+    • The offer title (e.g., "Iced Spanish Latte").
+    • The offer description/Subtitle (e.g., "Available only at Mall of Qatar, every Friday at all other branches").
+    3. Tabs Section:
+        ◦ Given I am on the offer details screen, #When I view the tabs,
+#Then I should see tappable tabs for "Description", "Terms of use", "Available Branches", and "Time & Day".
+        ◦ When I tap the "Description" tab (default),
+#Then I should see the offer description (e.g., "A smooth and creamy blend of espresso, chilled milk, and a hint of sweet condensed milk – perfectly balanced and refreshing. Buy 1 Get 1 FREE Available in all branches, every day except public holidays.").
+    4. Location Section:
+        ◦ Given I am on the offer details screen, #When I scroll to the location section,
+#Then I should see a map with a pin indicating the offer location (e.g., "Haight St") and an "Open Map" link.
+        ◦ When I tap the "Open Map" link,
+#Then I should be taken to a full map view showing the location.
+    5. Price and Redeem Button:
+        ◦ Given I am on the offer details screen, #When I view the price section,
+#Then I should see the discounted price (e.g., "QR 32.50") and the original price (e.g., "QR 63.00").
+        ◦ There should be a pink "Redeem" button next to the price.
+        ◦ When I tap the "Redeem" button,
+#Then I should be taken to the redemption process for this offer.
+    6. Recommended Deals Section:
+        ◦ Given I am on the offer details screen, #When I scroll to the bottom,
+#Then I should see a "Recommended Deals" section with a smaller offer card (e.g., "48% Discount Nike Free Metcon 6" by Nike Qatar) including:
+            ▪ A thumbnail image.
+            ▪ Badges (e.g., "100 Left").
+            ▪ Provider name and rating (e.g., "Nike Qatar • 4.8").
+            ▪ Offer title and details (e.g., "Sustainable Materials Men’s Workout
+Shoes Redeemable in Store Only").
+            ▪ Distance (e.g., "3.75KM").
+            ▪ Price (e.g., "QR 32.50 QR 63.00").
+            ▪ A pink "Redeem" button.
+        ◦ When I tap the recommended offer,
+#Then I should be taken to its offer details screen.
+    7. Pagination Dots:
+        ◦ Given I am on the offer details screen,
+#When I view the recommended deals section,
+#Then I should see pagination dots indicating multiple recommended offers (e.g., two dots, with the first one filled).
+[DDVXY-37] Offer Redemption via pin code Created: 03/Jun/25 Updated: 03/Jun/25
+
+
+
+
+
+    • Given I have successfully redeemed the offer, #When I am taken to the redeem success screen,
+#Then I should see a green checkmark icon, the text "Redeem Successful", a confirmation number (e.g., "ADS 000001"), and a prompt to rate the experience with the text "Please rate us! Iced Spanish Latte" and five empty stars.
+    • There should be a "Type your review..." text area for entering feedback.
+    • When I tap the stars to rate (e.g., 4 stars) and optionally type a review, #Then my rating and review should be submitted, and I should be taken to the business review screen (Screen 3).
+    3. Screen 3: Business Review Screen
+        ◦ Given I have submitted a review,
+#When I am taken to the business review screen for "Aplus.shop",
+#Then I should see the overall rating (e.g., "4.0") and the rating distribution (e.g., 5 stars: 52 reviews, 4 stars: some reviews, etc.).
+        ◦ The screen should display individual reviews with usernames (e.g., "Siah", "Sleef", "Jane Cooper", "Sloof"), star ratings, timestamps (e.g., "2 mins ago"), and review text (e.g., "Consequat velit qui adipiscing sunt do rependerit od laborum tempor ulamco exercitation. Ullamco tempor adipiscing et voluptate duis sit esse aliqua eu").
+        ◦ When I scroll through the reviews,
+#Then I should see all reviews associated with the business.
+    4. Screen 4: No Reviews (Empty State)
+        ◦ Given a business has no reviews,
+#When I am taken to the business review screen for "Aplus.shop",
+#Then I should see an empty state with an illustration of a person, the text "No reviews yet", and a subtext "Ullamco tempor adipiscing et voluptate duis sit esse aliqua ex".
+    5. Navigation:
+        ◦ Given I am on any of these screens, #When I tap the back arrow,
+#Then I should be taken to the previous screen.
+        ◦ The bottom navigation bar should remain visible with icons for "Home", "Offers", "Post", "Notification", and "You".
+
+
+[DDVXY-41] Request Delivery Flow for Offer Redemption Created: 03/Jun/25 Updated: 03/Jun/25
+
+
+
+
+
+    • When I tap the "Send Request" button,
+#Then I should be taken to the request sent screen (Screen 2).
+    2. Screen 2: Request Sent
+        ◦ Given I have sent a delivery request,
+#When I am taken to the request sent screen,
+#Then I should see the offer details (e.g., "Iced Spanish Latte QR 103.00 Normal, Normal Sugar"), a status timeline with "Your request: Delivery Sent", and a "Cancel Request" button.
+        ◦ Also, there is FAQ which shown below details:
+            ▪ Track your order status in the app
+            ▪ Contact the shop for update or modifications.
+            ▪ Message the shop directly for any special request.
+        ◦ There is need help section that shows business profile and location.
+            ▪ Profile image
+            ▪ Contact symbol
+            ▪ Rating
+            ▪ Subscribe label if applicable
+            ▪ Map
+            ▪ When user tap on contact icon, nativ phone dialpad will be open.
+        ◦ When the business approves the request,
+#Then I should be taken to the request approved screen (Screen 2).
+    3. Screen 3: Request Approved
+        ◦ Given the business has approved my delivery request, #When I am on the request approved screen,
+#Then the status timeline should update to "Redeem & Delivery Approved" and show "Your order Has been delivered".
+        ◦ When the delivery is in progress,
+#Then I should be taken to the order delivered screen (Screen 4).
+    4. Screen 4: Order Delivered
+        ◦ When I tap on back button, I will go to previous screen.
+        ◦ When I tap on “Cross“ button, I will go to previous screen.
+        ◦ I will have following details for offer view:
+            ▪ Image
+            ▪ Name
+            ▪ Description: Whatever customer has entered the detail from
+“Message“ box in “Request Delivery Screen“ (Redeem Details page)
+        ◦ I have “Your delivery request status view“ that shows the status of delivery.
+        ◦ “Please rate us“: I have following field for this view
+            ▪ Image of offer
+            ▪ Title of offer
+            ▪ I can give rate and review to this offer by selecting start and entering the message.
+        ◦ Business user profile: I have following fields for this view
+            ▪ Image of business user
+            ▪ Name of business user
+            ▪ Blue mark
+            ▪ Ratings
+            ▪ Subscribe label if applicable
+            ▪ Call button: User can call him using native call carrier.
+    5. Additional Screens (Business Response Flow):
+        ◦ Screen 5: Approve Redemption & Delivery
+            ▪ Given a business user views the request,
+#*When they are on the approve redemption screen,
+#*Then they should see the offer details, a "Has the Order Been Delivered?" prompt, and an "Approve & Selection" button.
+            ▪ User will have following details in this page:
+                1. Offer details: Including the price, quantity, and any message typed by the user.
+                2. Location: Display customer information and location
+                3. Phone number: Show’s user contact number
+                4. User profile
+            ▪ When they tap "Approve & Selection", Then the request should move to the next status.
+            ▪ When they reject the offer, one native textview popup should appear, you can enter the rejection reason and submit it.
+        ◦ Screen 6: Approve Redemption & Delivery (Post-Approval)
+            ▪ Given the business has approved the request, #*When they view the updated screen,
+#*Then the status should show "Accepted" with a timestamp (e.g., "Apr 29 2024 15:43").
+        ◦ Screen 7: Mark as Delivered
+            ▪ Given the business has delivered the order, #*When they view the updated screen,
+#*Then they should see a "Mark as Delivered" button.
+                1. When they tap "Mark as Delivered",
+#**Then the status should update to "Delivered" with a timestamp (e.g., "Apr 29 2024 15:43").
+[DDVXY-45] Confirm location redemption Created: 03/Jun/25 Updated: 03/Jun/25
+
+
+
+
+
+    • Distance
+    • Radio button
+    • At a time user can select only one saved address amongst the list.
+    • When I tap on “Save“ button. The selected address (current or saved) should be saved as my delivery location, and I should be returned to the previous screen (e.g., redemption screen).
+
+
+For business user:
+    • When business owner will receive the request for redeeming the offer, they will have the user’s location in that page. When business user taps on that location, they will have the map screen that shows the location of customer.
+
+
+[DDVXY-49] Map View Screen for Offer Locations Created: 03/Jun/25 Updated: 03/Jun/25
+
+
+
+
+    • Given I am on the map view screen,
+When I view the top section,
+Then I should see a search bar with the placeholder "Search Offers, Profile, Business..."
+    • Whatever I searched previously, it would become the tags and display below the search bar. When I tap on any tag, I can see the searched result on map.
+    • When I tap the search bar and enter a query,
+Then the map should update to show only locations matching the search criteria.
+    4. Offer Card at Bottom:
+        ◦ Given I am on the map view screen, #When I view the bottom section,
+#Then I should see a scrollable list of offer cards, each displaying:
+            ▪ The provider name and rating (e.g., "Redeemplus.shop • 4.8").
+            ▪ A "Subscribe" label if applicable.
+            ▪ The offer type badge (e.g., "BUY 1, GET 1 FREE").
+            ▪ The offer title (e.g., "Iced Spanish Latte").
+            ▪ Availability details (e.g., "Available only at Mall of Qatar on Friday...").
+            ▪ A "Redeemable in Store Only" label.
+            ▪ Distance from my location (e.g., "0.315km").
+            ▪ Price details (e.g., "QR 32.50 QR 63.00").
+            ▪ A pink "Redeem" button.
+        ◦ When I tap the "Redeem" button on an offer card,
+#Then I should be taken to the redemption screen for that offer.
+    5. Interacting with Map Pins:
+        ◦ Given I am on the map view screen,
+#When I tap on a pin (e.g., one with a 4.0 rating),
+#Then the map should zoom in on that location, and the offer card at the bottom should update to show the corresponding offer.
+
+
+[DDVXY-53] Search page Created: 03/Jun/25 Updated: 03/Jun/25
+
+
+
+
+
+    • When I tap "Clear All", Then all recent searches should be removed from the list.
+    • When I tap a recent search (e.g., "Golden Sands Retreat"), Then the app should display the search results for that query.
+    4. Recently Viewed Section:
+        ◦ Given I am on the search page,
+When I scroll to the "Recently Viewed" section,
+Then I should see a list of recently viewed offers, each displaying:
+            ▪ The provider name and rating (e.g., "Redeemplus.shop • 4.8").
+            ▪ A "Subscribe" label if applicable.
+            ▪ A "100 Left" badge if applicable.
+            ▪ The offer type badge (e.g., "BUY 1, GET 1 FREE").
+            ▪ The offer title (e.g., "Iced Spanish Latte").
+            ▪ Description/subtitle
+            ▪ A "Redeemable in Store Only" label.
+            ▪ Distance and view count (e.g., "0.315km" and "3,750").
+            ▪ Price details (e.g., "QR 32.50 QR 63.00").
+            ▪ A pink "Redeem" button.
+        ◦ When I tap the "Redeem" button on a recently viewed offer, #Then I should be taken to the redemption screen for that offer.
+        ◦ When I tap the offer card itself,
+#Then I should be taken to the offer details screen.
+    5. Filter screen
+        ◦ When I tap on filter button from search main screen, I will have filter popup.
+        ◦ Business Categories: When I am tapping on text box, I would go to “Categories“ screen. When I select any category, it will be added in “Business Categories“ search box.
+            ▪ Note for Dev: Reference the “Categories” screen for the full list of
+business categories to populate this section.
+        ◦ Offer Types: User can select offer types for filtering.
+            ▪ Multi-select Options:
+                1. All Offers
+                2. Buy & Get Free
+                3. Discount Deal
+                4. Package Deal
+                5. 24h Deal
+                6. Default Selection: All Offers
+        ◦ Profile Type: User can select profile types for filtering.
+            ▪ Multi-select Options:
+                1. All Profiles
+                2. Bronze Membership
+                3. Silver Membership
+                4. Gold Membership
+                    1. UI Note: Add a "Verified" badge next to Gold Membership to make it visually distinct and trustworthy.
+        ◦ Redeem Method: User can select redeem method for filtering.
+            ▪ Multi-select Options:
+                1. Redeemable In Store
+
+[DDVXY-57] Add-on Offer Created: 03/Jun/25 Updated: 03/Jun/25
+
+
+
+
+
+ix.  Buy 3 get 3 free
+    d. Section 2 has following types:
+        i. Package deal
+        ii. 24 hours deal
+        iii. Discount deal
+    e. Section 3
+        i. List it on Redeemplus official store with unlimited time, top visibility, just 5$
+    f. When I tap an offer type (e.g., "Buy 1 Get 1 Free"),
+Then I should be taken to the offer parameters screen (Screen 2).
+                2. Screen 2: Add-on Offer Parameters (Buy 1 Get 1 Free)
+    a. Given I have selected "Buy 1 Get 1 Free" as the offer type,
+When I am on the offer parameters screen,
+Then I should see:
+        i. A back arrow at the top left.
+        ii. A large image placeholder for the offer (e.g., an iced coffee drink).
+        iii. Fields to configure the offer:
+            1. Offer Type: Pre-selected as "Buy 1, Get 1 Free".
+            2. Category: Dropdown (e.g., "Coffee Shops").
+            3. Offer Title: Text input (e.g., "Iced Spanish Latte").
+            4. Subtitle: Text input (e.g., "Available only at Mall of Qatar on Friday").
+            5. Settings:
+                a. Discount % (for other offer types)
+                    i. Only when user select discount offer type this should show up
+                b. Minimum (e.g., "10").
+                    i. Discount starts from 10% up to 100% max.
+                c. Total Price (e.g., "30.50") (Apply validation like user cannot post with price 0)
+                d. Old Price (e.g., "44.00").
+                e. Duration
+                    i. Bronze & Silver membership max duration 30 days.
+                    ii. Gold membership will have 90 days.
+                    iii. RedeemPlus shop profile will has freedom to listup the offers 365 days
+                f. Valid Days: Toggle switches for each day (Sun-Sat).
+                    i. Automatically the unselected day ex. Friday, when that day came, offer will not be shown on the app.
+Plus the available marked day will show on the Day & Time section Automatically
+                    ii. This allow user to know that if i save this offer for later use, that this offer will not use on friday as Friday was not marked unavailable.
+                g. Total Offer (e.g., "100").
+                    i. Bronze
+                        1. Max total offers: 30
+                        2. Limit per user: 2
+                    ii. Silver
+                        1. Max total offers: 120
+                        2. Limit per user: 5
+                    iii. Gold
+                        1. Max total offers: 350
+                        2. Limit per user: 15
+                h. Redeemable in Store? (Yes/No toggle).
+            6. Create a PIN Code for this Offer: User has to enter this manually. i.e 1234.
+            7. Delivery:
+                a. Via Delivery? (Yes/No toggle).
+                    i. If user select yes, then the label will be displayed on offer card.
+                    ii. If user select no, then the label will not be displayed on offer card.
+                b. Delivery Fee (e.g., "70.50 QR").
+                    i. If user select yes, then the label will be displayed on offer card.
+                    ii. If user select no, then the label will not be displayed on offer card.
+                c. Estimated Delivery Time (e.g., "2 hrs 40 mins").
+            8. General Information:
+                a. Description (e.g., "A smooth and creamy blend of espresso, chilled milk...").
+                b. Terms of Use (e.g., "Valid on all selected items...").
+                c. Available in Branches (e.g., "Mall of Qatar, City Center Mall").
+                d. Time & Day (e.g., "10:00 to 13:00 PM").
+            9. Offer Location:
+                a. User has to select location from the given map. So user should know on which location this offer will be posted.
+        iv. A confirmation note: "I confirm that this offer complies with my
+country’s laws and is approved by the relevant authority if required".
+    b. When I fill out all required fields and tap the "Post Your Offer" button,
+Then the offer should be submitted for posting.
+    3. Screen 3: Add-on Offer Parameters (Discount Deal)
+        a. Given I have selected "Discount Deal" as the offer type,
+When I am on the offer parameters screen,
+Then the fields should be the same as in Screen 2, but with the "Offer Type" set to "Discount Deal" and the "Discount %" field enabled for input.
+        b. The rest of the functionality (e.g., filling out fields, posting the offer) should be the same as in Screen 2.
+    4. Posting and Listing:
+        a. Given I have submitted the offer,
+When I tap "Post Your Offer",
+Then the offer should be posted, and I should see a confirmation (not shown in the image).
+        b. The screen should display a "List in RedeemPlus - $5 Only" button in red, indicating a paid listing option.
+c. Note: Gold Membership will have an option to list on Redeemplus store free of charge.
+    5. Navigation:
+        a. Given I am on the add offer screens,
+When I tap the back arrow,
+Then I should be taken to the previous screen.
+        b. The bottom navigation bar should remain visible with icons for "Home", "Offers", "Post", "Notification", and "You", with "Post" highlighted as the active tab.
+
+
+[DDVXY-61] Profile Tab Created: 03/Jun/25 Updated: 03/Jun/25
+
+
+
+
+
+3. Also i should see my selected profile category title i.g Official RedeemPlus Store. This is the category title which is added bu the user at signup time.
+    iii. There are some categories for owner profile i.e All, Buy & Get, Discount, Package, 24Hrs, Saved.
+    iv. There should be following count displayed in profile tab:
+        1. Number of currently live offers posted by the user
+        2. Number of users following or subscribed to this user’s offers
+        3. Total number of times this user’s offers have been claimed or
+redeemed by others.
+    b. When I tap "Edit Profile", I should be taken to a screen to update my profile details.
+    c. When I tap on “Contact“ button, I can access my added contact.
+    d. When I tap on social media buttons, I will go to that link using webview.
+    e. When I tap on “Three dot menu“ option, I will be navigated user setting page
+(for owner user profile)
+    f. When I tap on share button, I can share the profile via native share sheet/sharing option.
+    g. When I tap on contact button, I can see the assigned phone number and can call using native call carrier/provider.
+    3. Screen 2: Profile (Visible to public)
+        ◦ Given I am an individual or business user on the profile screen, When the screen loads, Then I should see:
+            ▪ A profile photo, business name (e.g., "Aplus.shop"), and rating (e.g., "4.8").
+                • The blue verified badge, now styled similarly to Facebook’s verified icon, is exclusively assigned to Gold members, which is why it appears on this simplified screen.
+            ▪ A membership title.
+                • Allowing anyone to see the user’s current membership status. When someone taps the title, they will be directed to the subscription screen. This is intended to increase user awareness and encourage more upgrades.
+                • The three-tier colour coding—Bronze, Silver, and Gold—is reflected in the card icon design.
+            ▪ There should be following count displayed in profile tab:
+                • Number of currently live offers posted by the user
+                • Number of users following or subscribed to this user’s offers
+                • Total number of times this user’s offers have been claimed or
+redeemed by others.
+            ▪ There are some categories for profile i.e All, Buy & Get, Discount, Package, 24Hrs.
+        ◦ When I tap on social media buttons, I will go to that link using webview.
+        ◦ When I tap on “Three dot menu“ option, I will be navigated to report this profile
+page (for other user profile)
+        ◦ When I tap on contact button, I can see the assigned phone number and can call using native call carrier/provider.
+        ◦ When I tap on subscribe button, I can subscribe to that profile.
+    4. Screen 3: Edit Profile
+        ◦ I can edit following details in my profile:
+    • Profile image: By camera or gallery
+    • Username: If i tried to edit username and its taken should show username in red and if its available will show on green
+    • Category: Dropdown
+    • Phone: Country code and number
+    • Email
+    • Date of birth
+    • My subscription: When user tap on I button, he/she will have popup that shows the detail
+    • Users can enter their Location, Whatsapp, TikTok and Instagram link.
+    • User can set their current location.
+    • When I make changes and tap "Submit", my profile should be updated, and I should be taken back to the profile screen.
+    • When I tap on “Change Password“, I will go to change password screen and can
+change my password
+    • When I tap on “Delete Account“, my account will be deleted successfully.
+    5. Navigation:
+        a. Given I am on the profile screens,
+When I tap the back arrow,
+Then I should be taken to the previous screen.
+        b. The bottom navigation bar should remain visible with icons for "Home", "Offers", "Post", "Notification", and "You", with "You" highlighted as the active tab.
+
+
+[DDVXY-65] Settings Created: 03/Jun/25 Updated: 03/Jun/25
+
+
+
+
+
+
+[DDVXY-69] Language selection from setting Created: 03/Jun/25 Updated: 03/Jun/25
+
+
+
+
+
+
+[DDVXY-73] Notification Setting Created: 03/Jun/25 Updated: 03/Jun/25
+
+
+
+
+
+
+[DDVXY-77] Contact Us Created: 03/Jun/25 Updated: 03/Jun/25
+
+
+
+
+
+
+[DDVXY-81] Report a problem Created: 03/Jun/25 Updated: 03/Jun/25
+
+
+
+
+
+
+[DDVXY-85] Static web views Created: 03/Jun/25 Updated: 03/Jun/25
+
+
+
+
+[DDVXY-89] Edit profile Created: 03/Jun/25 Updated: 03/Jun/25
+
+
+
+
+
+    • If i tried to edit username and its taken should show username in red and if its available will show on green
+    • Given I am on the Edit Profile page, when I select a "Category" ("Local Business"), then the dropdown should include additional options (e.g., "Individual," "Enterprise") and display a confirmation message upon selection.
+    • Given I am on the Edit Profile page, when I edit the "Phone" field ("+974 66 555 724"), then the app should validate the phone number format and display an error if invalid.
+    • Given I am on the Edit Profile page, when I tap on "My Subscription" ("Gold Member"), then it should display a brief overview of the subscription benefits and an option to upgrade.
+        ◦ No Auto Renewal As well. once subscription done, profile will be downgrade to the free version (Bronze)
+    • Given I am on the Edit Profile page, when I edit the "Active URL Links" (Maps, WhatsApp, TikTok, Instagram), then the app should validate the URLs and display a preview of the link destination.
+    • Given I am on the Edit Profile page, when I tap "Confirm your Location," then the map should allow me to manually adjust the pin and save the updated location.
+    • Given I am on the Edit Profile page, when I tap "Change Password," then a secure form should appear requiring the current password, new password, and confirmation, with strength validation.
+    • Given I am on the Edit Profile page, when I tap "Delete Account," then a confirmation prompt should appear with a warning and a secondary confirmation (e.g., entering the password) to prevent accidental deletion.
+    • Given I am on the Edit Profile page, when I tap "Apply" or "Submit," then a success message should appear (e.g., "Profile updated successfully").
+
+
+[DDVXY-93] Notification page Created: 03/Jun/25 Updated: 03/Jun/25
+
+
+
+
+
+
+[DDVXY-97] Offer % tab Created: 04/Jun/25 Updated: 04/Jun/25
+
+
+
+
+
+
+[DDVXY-101] Offer % tab filter Created: 04/Jun/25 Updated: 04/Jun/25
+
+
+
+
+
+
+
+[DDVXY-105] Offer three dots menu Created: 11/Jun/25 Updated: 11/Jun/25
+
+
+
+As a user, I want the Offer Edit Post Popup to display options relevant to my role (business owner or customer) so that I can manage or interact with offers appropriately.
+
+Acceptance Criteria:
+
+    • Given I am a business owner who posted the offer, when I tap the three-dot menu on the Offer Page, then the popup should display the following options: "Edit Offer," "Delete Offer," "Share Offer," and "List in RedeemPlus Store – $5" (only if the offer hasn’t been listed yet).
+    • Given I am a business owner, when I tap "List in RedeemPlus Store – $5," then a confirmation prompt should appear (e.g., "List this offer in RedeemPlus Store for
+$5?"), and upon confirmation, the option should disappear from the popup.
+    • Given I am a business owner, when I tap "Delete Offer," then a confirmation prompt should appear (e.g., "Are you sure you want to delete this offer? This action cannot be undone.") before the offer is removed.
+    • Given I am a customer, when I tap the three-dot menu on the Offer Page, then the popup should display the following options: "Share Offer," "Unsubscribe," and "Report This Offer."
+    • Given I am a customer, when I tap "Report This Offer," then a form should appear allowing me to select a reason (e.g., "Inappropriate Content," "False Information") and submit a report.
+    • Given I am either a business owner or customer, when I tap "Share Offer," then a share sheet should appear with options to share via social media, messaging apps, or copy the link.
+    • Given I am a customer, when I tap "Unsubscribe," then a confirmation prompt should appear (e.g., "Are you sure you want to unsubscribe from Redeemplus.shop?"), and upon confirmation, I should no longer receive updates from this business.
+
+
+[DDVXY-109] Report the user Created: 13/Jun/25 Updated: 13/Jun/25
+
+
+
+
+
+As a user, I want the Report This Profile feature to be more intuitive and provide better feedback collection so that I can effectively report problematic profiles and provide detailed information.
+
+Acceptance Criteria:
+
+    • Given I am on the Report This Profile page, when I view the "Select Reason" section, then the list of reasons ("Fake or misleading account," "Inappropriate profile image," "Harassment or abuse," "Spam or scam," "Impersonation," "Offensive language," "Other") should allow only one selection at a time, with the selected reason marked by a green checkmark.
+    • Given I am on the Report This Profile page, when I select the "Other" reason, then the "Additional Details" text box should become mandatory, and a prompt should appear (e.g., "Please describe the issue in detail").
+    • Given I am on the Report This Profile page, when I tap "Send Report" without selecting a reason, then an error message should appear (e.g., "Please select a reason for reporting this profile").
+    • Given I am on the Report This Profile page, when I successfully submit a report, then a confirmation message should appear (e.g., "Thank you! Your report has been submitted. We’ll review it soon."), and the page should close.
+    • Given I am on the Report This Profile page, when I tap the back arrow or "X" to close the page, current page will be closed.
+    • Given I am on the Report This Profile page, when I submit a report, then the necessary API will be called.
+
+
+
+
+
+
+
+
+
+As a user, I want the offer interaction workflow to provide role-specific actions and a seamless reporting process so that I can manage or report offers based on my role (business owner or customer).
+
+Acceptance Criteria:
+
+    • Given I am a offer owner who posted the offer, when I tap the three-dot menu on an offer, then the popup should display the following options: "Edit Offer," "Delete Offer," "Share Offer," and "List in RedeemPlus Store – $5".
+
+    • Given I am a other user, when I tap the three-dot menu on an offer, then the popup should display the following options: "Share Offer," "Unsubscribe," and "Report This Offer".
+    • When I tap on "Edit offer," then the edit offer page should appear.
+    • Given I am a offer owner, when I tap "Delete Offer," then a confirmation prompt should appear (e.g., "Are you sure you want to delete this offer? This action cannot be undone.") before the offer is removed.
+    • Given I am a other user, when I tap "Report This Offer," then the Report This Offer page should appear.
+    • Given I am on the Report This Offer page, when I select a reason and tap "Send Report," then a confirmation message should appear (e.g., "Thank you! Your report has been submitted. We’ll review it soon."), and the page should close.
+    • When I tap "Share Offer," then a native share sheet should appear.
+    • Given I am a other user, when I tap "Unsubscribe," then a confirmation prompt should appear (e.g., "Are you sure you want to unsubscribe from Redeemplus.shop?"), and upon confirmation, I should no longer receive updates from this business.
+
+
+
+[DDVXY-117] Edit Offer Created: 13/Jun/25 Updated: 13/Jun/25
+
+
+
+
+Description:
+
+As a business owner, I want the Edit Your Offer feature to be more intuitive and include proper validation so that I can easily update my offer details accurately and efficiently.
+
+Acceptance Criteria:
+
+    • Given I am on the Edit Your Offer page, when I tap the offer image, then I should be able to upload a new image from my gallery or take a new photo with the camera.
+    • Given I am on the Edit Your Offer page, when I tap "Update Your Offer," then both confirmation checkboxes ("I confirm details are correct" and "I confirm compliance with country laws") must be checked, or an error message should appear (e.g., "Please confirm all details and compliance").
+    • Given I am on the Edit Your Offer page, when I successfully submit the updated offer, then a confirmation message should appear (e.g., "Offer updated successfully!"), and the page should close.
+    • All faded color written in this page are unchangable by user.
+    • Price once assign can’t be changed.
+    • Selection of redeem in shop can’t be changed to avoid issue with customer who
+already on site. He can change the pincode.
+    • User can’t change the location.
+
+
+
+[DDVXY-121] Membership Plan Created: 25/Jun/25 Updated: 25/Jun/25
+
+
+
+
+
+
+
+
+
+
+
+
+
+Here we have 3 types of plans
+
+    1. Bronze membership
+        ◦ Price: $0 (Free)
+        ◦ Features providing
+            ▪ Offers per year: 20 offers
+            ▪ Access to all offer types
+            ▪ Price control & No commission
+            ▪ Offer visibility(Days): 30 days
+            ▪ Customisable offers
+            ▪ Free delivery management
+            ▪ Unlimited offer redemption
+    2. Silver membership
+        ◦ Price: 15$
+        ◦ Features providing
+            ▪ Offers per year: 120 offers
+            ▪ Access to all offer types
+            ▪ Price control & No commission
+            ▪ Offer visibility(Days): 30 days
+
+            ▪ Customisable offers
+            ▪ Free delivery management
+            ▪ Priority customer support
+            ▪ Exclusive Promo Access
+            ▪ Unlimited offer redemption
+    3. Gold Membership
+        ◦ Price: 30$
+        ◦ Features providing
+            ▪ Offers per year: Unlimited offers
+            ▪ Free Listing on RedeemPlus Store
+            ▪ Verified Badge (Blue tick)
+            ▪ Access to all offer types
+            ▪ Price control & No commission
+            ▪ Offer visibility(Days): 90 days
+            ▪ Customisable offers
+            ▪ Free delivery management
+            ▪ Priority customer support
+            ▪ Early access to Exclusive offer
+            ▪ Unlimited offer redemption
+
+General:
+
+    • All plans have 1 year membership validity
+    • All plans will be auto renewal
+    • When user taps on “CHOOSE“ button, selected plan will be applied to that particular
+user.
+    • Plans will be in horizontal scrolling slider
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                3. Third Party SDK
+
+Third Party For
+Reason
+Third party Name
+Notifications
+For sending push notifications
+Firebase Cloud Messaging
+Location
+For accessing nearby vendors
+Google	OpenStreet Map API
+Payment Gateway
+For online transaction
+TBD during development
+
+For subscription, we will use in- app purchase.
+For 5$ extra we will use payment gateway.
+
+
+
+
+
+
+
+
+
+
+
+                4. Standard Validations
+
+Sr
+Validation name
+Rules
+Error Message
+1.
+Standard Email
+Validation
+Must not be empty
+Please enter
+{FieldName}.
+
+
+Must be a valid email Format
+{FieldName} is not valid Email
+Address.
+2
+Standard Not Empty Validation
+FieldName.trim().Length== 00
+Please enter
+{FieldName}.
+3
+Standard Mobile Number Validation
+Must be numeric Must not be empty
+Please enter correct
+{FieldName}.
+4
+Standard Password Validation
+Must not be empty
+Please enter
+{FieldName}.
+
+
+At least 8 characters
+{FieldName} must be 8 characters
+long.
+
+
+A mixture of both uppercase and lowercase letters
+{FieldName} must use both uppercase and
+lower case.
+
+
+A mixture of letters and numbers
+{FieldName} must use both number	and
+letters
+
+
+Inclusion of at least one special character
+{FieldName} must have one special
+characters.
+

@@ -1,0 +1,3 @@
+const OPERATION_FAILED = 0
+const SUCCESS = 1
+const UNAUTHORIZED = 2

@@ -1,0 +1,535 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<html lang="en">
+
+<head>
+    <meta http-equiv="content-type" content="text/html; charset=ISO-8859-1">
+    <link href="https://unpkg.com/vuetify@1.0.17/dist/vuetify.min.css" type="text/css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css?family=Roboto:300,400,500,700|Material+Icons" rel="stylesheet">
+    <link rel="shortcut icon" href="<%= globals.LOGO %>">
+
+    <title>
+        <%= globals.app_name %> API</title>
+    <style type="text/css">
+        .medium-text {
+            font-size: 20px;
+            color: white;
+        }
+    </style>
+</head>
+
+<body>
+    <BR>
+    <BR>
+
+    <div id="main" style="margin:0px auto; text-align:center; position:sticky;">
+        <center>
+            <table border="0" cellpadding="10" cellspacing="10" width="70%" style="background-color: #2c7399;color: #fff;font-weight: bold;">
+                <tr>
+                    <td><b>Server URL :-</b></td>
+                    <td>
+                        <%= globals.app_url %>
+                    </td>
+                    <td>Header Parameters :</td>
+                    <td><b>api_key,<br>authorization,<br>accept_language (en,es,fr)</br>Content-Type</b><br><b>is_production (true /false) </b></td>
+                    <!-- <td><br>accept_language: en -> English<br></td> -->
+                </tr>
+                <tr>
+                    <!-- <td colspan="4" align="center"><b>If Device Token not get pass 0 only</b></td> -->
+                    <td colspan="4" align="center"><b>In authorization pass access_token</b></td>
+                </tr>
+            </table>
+        </center>
+
+        <br>
+        <br>
+    </div>
+    <div id="app">
+        <v-app id="inspire">
+
+            <v-layout justify column>
+                <v-flex style="margin:0px auto; padding:0px; text-align:center;" center right sm2 xs2 md2 lg2 xl2>
+                    <!-- <img src='<%= globals.base_url_without_api+ globals.logo %>' width="250px" height="250px" style="border:1px solid black"> -->
+                    <br>
+                    <strong style="font-size:24px;">
+						<%= globals.app_name %> API LIST</strong>
+                    <br>
+                    <br>
+                </v-flex>
+                <v-flex style="margin:0px auto; padding:0px;" center right sm2 xs2 md2 lg2 xl2>
+
+                    <div id="main" style="margin:0px auto; position:sticky;">
+                        <table border="0" cellpadding="10" cellspacing="10" width="140%" style="background-color: rgb(71, 131, 100);color: #fff;font-weight: bold;">
+                            <tr>
+                                <td><b>Server URL :</b></td>
+                                <td>
+                                    <%= globals.app_url %>v1/</td>
+                            </tr>
+                            <tr>
+                                <td><b>Header Parameters :</b></td>
+                                <td>api_key,authorization,accept_language</td>
+                            </tr>
+                            <tr>
+                                <td><b>api_key :</b></td>
+                                <td><b><%= globals.api_key %></b></td>
+                            </tr>
+                            <tr>
+                                <td><b>api_key(encrypted) :-</b></td>
+                                <td><b>3oG7UFh0dYwtiDGb/McDWA==</b></td>
+                            </tr>
+                            <tr>
+                                <td><b>KEY :</b></td>
+                                <td><b>xza548sa3vcr641b5ng5nhy9mlo64r6k</b></td>
+                            </tr>
+                            <tr>
+                                <td><b>IV :</b></td>
+                                <td><b><%= globals.encryptionIV %></b></td>
+                            </tr>
+                            <!-- <tr>
+                                <td colspan="2" align="center"><img src='<%= globals.base_url_without_api+ globals.arrow_image %>' width="40px"> &nbsp;&nbsp;
+                                    <b>If Device Token not get pass 0 only</b></td>
+                            </tr> -->
+                        </table>
+                        <br>
+                        <br>
+                    </div>
+                </v-flex>
+                <v-flex style="margin:0px auto;" center right sm2 xs2 md2 lg2 xl2>
+                    <!-- <a target="_blank" href='<%= globals.port_base_url %>/v1/api_document/user_list'>
+                        <v-btn color="blue-grey" class="white--text">
+                            User LIST
+                            <v-icon right dark>people</v-icon>
+                        </v-btn>
+                    </a> -->
+                    <!-- 	<a target="_blank" href='<%= globals.port_base_url %>v1/Api_document/tutor_list'>
+						<v-btn color="blue-grey" class="white--text">
+							Tutor LIST
+							<v-icon right dark>people</v-icon>
+						</v-btn>
+					</a> -->
+                    <a href='<%= globals.port_base_url %>v1/api_document/code'>
+                        <v-btn color="blue-grey" class="white--text">
+                            CODE REFERENCE
+                            <v-icon right dark>code</v-icon>
+                        </v-btn>
+                    </a>
+                    <a target="_blank" href='http://3.125.89.55/tostylmou/enc_dec.php'>
+                        <v-btn color="blue-grey" class="white--text">
+                            ENCRYPTION URL
+                            <v-icon right dark>lock</v-icon>
+                        </v-btn>
+                    </a>
+                    <!-- <a target="_blank" href='https://vuetifyjs.com/en/style/colors'>
+						<v-btn color="blue-grey" class="white--text">
+							COLOR INFO
+							<v-icon right dark>color_lens</v-icon>
+						</v-btn>
+					</a>
+					<a target="_blank" href='https://material.io/tools/icons/?style=baseline'>
+						<v-btn color="blue-grey" class="white--text">
+							ICON INFO
+							<v-icon right dark>bubble_chart</v-icon>
+						</v-btn>
+					</a> -->
+                </v-flex>
+                <v-expansion-panel popout>
+                    <v-expansion-panel-content v-for="(message, i) in messages" :key="i" hide-actions>
+                        <v-layout slot="header" align-center row spacer>
+                            <v-flex sm1 xs1 md1 lg1 xl1>
+                                <v-avatar slot="activator" size="36px">
+                                    <v-icon :color="message.color">{{ message.icon }}</v-icon>
+                                </v-avatar>
+                            </v-flex>
+                            <v-flex sm3 xs3 md3 lg3 xl3>
+                                <strong v-html="message.title"></strong>
+                                <v-chip v-if="message.meth" :color="`${message.color} lighten-4`" label small class="ml-0">
+                                    {{ message.meth }}
+                                </v-chip>
+                            </v-flex>
+                            <v-flex sm3 xs3 md3 lg3 xl3>
+                                <strong v-html="message.name"></strong>
+                            </v-flex>
+                            <v-flex sm4 xs4 md4 lg4 xl4>
+                                <v-flex v-if="message.link" class="grey--text" ellipsis hidden-sm-and-down>
+                                    {{ message.link }}
+                                </v-flex>
+                                <v-flex v-if="message.imp" class="grey--text" ellipsis hidden-sm-and-down>
+                                    <p style="color:darkred">SHOW IMPORTANT NOTE INSIDE</p>
+                                </v-flex>
+                            </v-flex>
+                        </v-layout>
+                        <v-card dark>
+                            <v-container>
+                                <v-layout>
+                                    <v-flex xs12 align-end flexbox>
+                                        <v-alert :value="true" outline color="white" style="padding:5px;">
+                                            <v-chip color="teal" text-color="white">
+                                                <v-avatar>
+                                                    <v-icon>check_circle</v-icon>
+                                                </v-avatar> MANDATORY
+                                            </v-chip>
+                                            {{message.mandatory}}
+                                        </v-alert>
+                                        <v-alert :value="true" outline color="white" style="padding:5px;">
+                                            <v-chip outline color="#F0F4C3">
+                                                <v-avatar>
+                                                    <v-icon>check_circle</v-icon>
+                                                </v-avatar>OPTIONAL
+                                            </v-chip>
+                                            <span>{{ message.optional }}
+										</v-alert>
+										<v-alert v-if="message.link" :value="true" outline color="white"
+											style="padding:5px;">
+											<v-chip color="light-green darken-2" text-color="white">
+												<v-avatar>
+													<v-icon>explore</v-icon>
+												</v-avatar> LINK
+											</v-chip>
+											<span>{{ message.link }}
+										</v-alert>
+										<v-alert v-if="message.imp" :value="true" outline color="white"
+											style="padding:5px;">
+											<v-chip color="red darken-2" text-color="white">
+												<v-avatar>
+													<v-icon>flight_land</v-icon>
+												</v-avatar> IMPORTANT
+											</v-chip>
+											<p v-html="message.imp"></p>
+										</v-alert>
+										<v-alert v-if="message.exp" :value="true" outline color="white"
+											style="padding:5px;">
+											<v-chip color="blue darken-2" text-color="white">
+												<v-avatar>
+													<v-icon></v-icon>
+												</v-avatar> EXAMPLE
+											</v-chip>
+											<p v-html="message.exp"></p>
+										</v-alert>
+										<v-alert v-if="message.notes" :value="true" outline color="white"
+											style="padding:5px;">
+											<v-chip color="blue lighten-1" text-color="white">
+												<v-avatar>
+													<v-icon>bookmark</v-icon>
+												</v-avatar> NOTES
+											</v-chip>
+											<span>{{ message.notes }}
+										</v-alert>
+										<v-layout style="margin-top:-4px">
+											<v-flex xs6 align-end flexbox>
+												<v-alert :value="true" outline color="yellow" icon="priority_high"
+													style="padding:5px;">
+													<span class="grey--text">HEADER : {{ message.is_header }}, PUSH :
+														{{ message.is_push }}</span>
+                                            <br>
+                                            <span>HEADER : {{ message.header }}</span>
+                                        </v-alert>
+                                    </v-flex>
+                                    <v-flex xs6 align-end flexbox>
+                                        <v-alert style="margin-left:4px; padding:5px;" :value="true" outline color="yellow" icon="priority_high">
+                                            STATUS :
+                                            <span v-html="message.status"></span>
+                                        </v-alert>
+                                    </v-flex>
+                                </v-layout>
+                                </v-flex>
+            </v-layout>
+            </v-container>
+            <v-card-actions>
+            </v-card-actions>
+            </v-card>
+            </v-expansion-panel-content>
+            </v-expansion-panel>
+            </v-layout>
+        </v-app>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/vue@2.6.14/dist/vue.js"></script>
+    <script src="https://unpkg.com/vuetify@1.0.17/dist/vuetify.min.js"></script>
+    <script src="https://unpkg.com/babel-polyfill/dist/polyfill.min.js"></script>
+
+    <script>
+        //console.log('<%= global.base_url %>enc_dec.php');
+
+        new Vue({
+            el: '#app',
+            data: () => ({
+                messages: [
+                
+    {
+        "color": "teal",
+        "icon": "person",
+        "title": "1 : USER",
+        "name": "Signup",
+        "meth": "POST",
+        "link": "<%= global.base_url %>v1/user/signup",
+        "mandatory": "first_name, last_name, email, phone, latitude, longitude, password, login_type, social_id, device_type, device_token, device_name, os_version",
+        "optional": "",
+        "is_header": "YES",
+        "is_push": "NO",
+        "header": "api_key",
+        "notes": "This API is used for user signup. It supports both simple and social signup.",
+        "status": "<br>1. HTTP_OK[200] - code : 0 <br>2. HTTP_OK[200] - code : 1",
+        "imp": "Code 0 => Failure, Code 1 => Success"
+    },
+    {
+        "color": "teal",
+        "icon": "person",
+        "title": "2 : USER",
+        "name": "Login",
+        "meth": "POST",
+        "link": "<%= global.base_url %>v1/user/login",
+        "mandatory": "email_phone, device_type, login_type('Simple', 'Facebook', 'Google'), latitude, longitude, device_token, os_version",
+        "optional": "password, social_id",
+        "is_header": "YES",
+        "is_push": "NO",
+        "header": "api_key",
+        "notes": "This API is used for user login. It supports both simple and social login.",
+        "status": "<br>1. HTTP_OK[200] - code : 0 <br>2. HTTP_OK[200] - code : 1",
+        "imp": "Code 0 => Failure, Code 1 => Success"
+    },
+    {
+        "color": "teal",
+        "icon": "person",
+        "title": "3 : USER",
+        "name": "Verify OTP",
+        "meth": "POST",
+        "link": "<%= global.base_url %>v1/user/verifyOTP",
+        "mandatory": "action, otp",
+        "optional": "",
+        "is_header": "YES",
+        "is_push": "NO",
+        "header": "api_key",
+        "notes": "This API is used to verify OTP.",
+        "status": "<br>1. HTTP_OK[200] - code : 0 <br>2. HTTP_OK[200] - code : 1",
+        "imp": "Code 0 => Failure, Code 1 => Success"
+    },
+    {
+        "color": "teal",
+        "icon": "person",
+        "title": "4 : USER",
+        "name": "Edit Profile",
+        "meth": "POST",
+        "link": "<%= global.base_url %>v1/user/editProfile",
+        "mandatory": "user_id",
+        "optional": "first_name, last_name, profile_image, dob, gender, weight, height, level, goal_id",
+        "is_header": "YES",
+        "is_push": "NO",
+        "header": "api_key",
+        "notes": "This API is used to edit user profile.",
+        "status": "<br>1. HTTP_OK[200] - code : 0 <br>2. HTTP_OK[200] - code : 1",
+        "imp": "Code 0 => Failure, Code 1 => Success"
+    },
+    {
+        "color": "teal",
+        "icon": "person",
+        "title": "5 : USER",
+        "name": "Forgot Password",
+        "meth": "POST",
+        "link": "<%= global.base_url %>v1/user/forgotPassword",
+        "mandatory": "email_phone",
+        "optional": "",
+        "is_header": "YES",
+        "is_push": "NO",
+        "header": "api_key",
+        "notes": "This API is used to reset the user's password.",
+        "status": "<br>1. HTTP_OK[200] - code : 0 <br>2. HTTP_OK[200] - code : 1",
+        "imp": "Code 0 => Failure, Code 1 => Success"
+    },
+    {
+        "color": "teal",
+        "icon": "person",
+        "title": "6 : USER",
+        "name": "Update Password",
+        "meth": "POST",
+        "link": "<%= global.base_url %>v1/user/updatePassword",
+        "mandatory": "new_password",
+        "optional": "",
+        "is_header": "YES",
+        "is_push": "NO",
+        "header": "api_key",
+        "notes": "This API is used to update the user's password.",
+        "status": "<br>1. HTTP_OK[200] - code : 0 <br>2. HTTP_OK[200] - code : 1",
+        "imp": "Code 0 => Failure, Code 1 => Success"
+    },
+    {
+        "color": "teal",
+        "icon": "person",
+        "title": "7 : USER",
+        "name": "Change Password",
+        "meth": "POST",
+        "link": "<%= global.base_url %>v1/user/changePassword",
+        "mandatory": "old_password, new_password",
+        "optional": "",
+        "is_header": "YES",
+        "is_push": "NO",
+        "header": "api_key",
+        "notes": "This API is used to change the user's password.",
+        "status": "<br>1. HTTP_OK[200] - code : 0 <br>2. HTTP_OK[200] - code : 1",
+        "imp": "Code 0 => Failure, Code 1 => Success"
+    },
+    {
+        "color": "teal",
+        "icon": "person",
+        "title": "8 : USER",
+        "name": "Logout",
+        "meth": "POST",
+        "link": "<%= global.base_url %>v1/user/logout",
+        "mandatory": "user_id",
+        "optional": "",
+        "is_header": "YES",
+        "is_push": "NO",
+        "header": "api_key",
+        "notes": "This API is used to log out the user.",
+        "status": "<br>1. HTTP_OK[200] - code : 0 <br>2. HTTP_OK[200] - code : 1",
+        "imp": "Code 0 => Failure, Code 1 => Success"
+    },
+    {
+        "color": "teal",
+        "icon": "person",
+        "title": "9 : USER",
+        "name": "Delete User",
+        "meth": "POST",
+        "link": "<%= global.base_url %>v1/user/deleteUser",
+        "mandatory": "user_id",
+        "optional": "",
+        "is_header": "YES",
+        "is_push": "NO",
+        "header": "api_key",
+        "notes": "This API is used to delete the user account.",
+        "status": "<br>1. HTTP_OK[200] - code : 0 <br>2. HTTP_OK[200] - code : 1",
+        "imp": "Code 0 => Failure, Code 1 => Success"
+    },
+    {
+        "color": "teal",
+        "icon": "person",
+        "title": "10 : USER",
+        "name": "View Profile",
+        "meth": "GET",
+        "link": "<%= global.base_url %>v1/user/viewProfile",
+        "mandatory": "user_id",
+        "optional": "",
+        "is_header": "YES",
+        "is_push": "NO",
+        "header": "api_key",
+        "notes": "This API is used to view the user's profile details.",
+        "status": "<br>1. HTTP_OK[200] - code : 0 <br>2. HTTP_OK[200] - code : 1",
+        "imp": "Code 0 => Failure, Code 1 => Success"
+    },
+    {
+        "color": "teal",
+        "icon": "notifications",
+        "title": "11 : NOTIFICATION",
+        "name": "Get Notification",
+        "meth": "GET",
+        "link": "<%= global.base_url %>v1/user/getNotification",
+        "mandatory": "",
+        "optional": "",
+        "is_header": "YES",
+        "is_push": "NO",
+        "header": "api_key",
+        "notes": "This API is used to get user notifications.",
+        "status": "<br>1. HTTP_OK[200] - code : 0 <br>2. HTTP_OK[200] - code : 1",
+        "imp": "Code 0 => Failure, Code 1 => Success"
+    },
+    {
+        "color": "teal",
+        "icon": "category",
+        "title": "12 : CATEGORY",
+        "name": "Get Categories",
+        "meth": "GET",
+        "link": "<%= global.base_url %>v1/user/getCategories",
+        "mandatory": "",
+        "optional": "",
+        "is_header": "YES",
+        "is_push": "NO",
+        "header": "api_key",
+        "notes": "This API is used to get all categories.",
+        "status": "<br>1. HTTP_OK[200] - code : 0 <br>2. HTTP_OK[200] - code : 1",
+        "imp": "Code 0 => Failure, Code 1 => Success"
+    },
+    {
+        "color": "teal",
+        "icon": "shopping_cart",
+        "title": "13 : PRODUCT",
+        "name": "Get Products",
+        "meth": "GET",
+        "link": "<%= global.base_url %>v1/user/getProducts",
+        "mandatory": "",
+        "optional": "",
+        "is_header": "YES",
+        "is_push": "NO",
+        "header": "api_key",
+        "notes": "This API is used to get all products with pagination and filtering.",
+        "status": "<br>1. HTTP_OK[200] - code : 0 <br>2. HTTP_OK[200] - code : 1",
+        "imp": "Code 0 => Failure, Code 1 => Success"
+    },
+    {
+        "color": "teal",
+        "icon": "shopping_cart",
+        "title": "14 : PRODUCT",
+        "name": "Get Recently Viewed Products",
+        "meth": "GET",
+        "link": "<%= global.base_url %>v1/user/getRecentlyViewProducts",
+        "mandatory": "",
+        "optional": "",
+        "is_header": "YES",
+        "is_push": "NO",
+        "header": "api_key",
+        "notes": "This API is used to get recently viewed products.",
+        "status": "<br>1. HTTP_OK[200] - code : 0 <br>2. HTTP_OK[200] - code : 1",
+        "imp": "Code 0 => Failure, Code 1 => Success"
+    },
+    {
+        "color": "teal",
+        "icon": "shopping_cart",
+        "title": "15 : PRODUCT",
+        "name": "Get Single Product",
+        "meth": "GET",
+        "link": "<%= global.base_url %>v1/user/getSingleProduct",
+        "mandatory": "product_id",
+        "optional": "",
+        "is_header": "YES",
+        "is_push": "NO",
+        "header": "api_key",
+        "notes": "This API is used to get details of a single product.",
+        "status": "<br>1. HTTP_OK[200] - code : 0 <br>2. HTTP_OK[200] - code : 1",
+        "imp": "Code 0 => Failure, Code 1 => Success"
+    },
+    {
+        "color": "teal",
+        "icon": "shopping_cart",
+        "title": "16 : CART",
+        "name": "Add to Cart",
+        "meth": "POST",
+        "link": "<%= global.base_url %>v1/user/addToCart",
+        "mandatory": "product_id",
+        "optional": "quantity, size, color",
+        "is_header": "YES",
+        "is_push": "NO",
+        "header": "api_key",
+        "notes": "This API is used to add a product to the cart.",
+        "status": "<br>1. HTTP_OK[200] - code : 0 <br>2. HTTP_OK[200] - code : 1",
+        "imp": "Code 0 => Failure, Code 1 => Success"
+    },
+    {
+        "color": "teal",
+        "icon": "shopping_cart",
+        "title": "17 : ORDER",
+        "name": "Place Order",
+        "meth": "POST",
+        "link": "<%= global.base_url %>v1/user/placeOrder",
+        "mandatory": "",
+        "optional": "",
+        "is_header": "YES",
+        "is_push": "NO",
+        "header": "api_key",
+        "notes": "This API is used to place an order.",
+        "status": "<br>1. HTTP_OK[200] - code : 0 <br>2. HTTP_OK[200] - code : 1",
+        "imp": "Code 0 => Failure, Code 1 => Success"
+    }
+]
+            })
+        });
+    </script>
+</body>
+
+</html>

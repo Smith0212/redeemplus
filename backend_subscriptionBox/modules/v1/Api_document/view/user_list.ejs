@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Customer List</title>
+    <link rel="stylesheet" type="text/css" href="<%= globals.base_url_without_api%>assets/css/bootstrap.css">
+    <link rel="stylesheet" href="http://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.6.3/css/font-awesome.min.css">
+    <style type="text/css">
+        
+        body
+        {
+            font-family: Calibri,Candara,Segoe,Segoe UI,Optima,Arial,sans-serif;
+            padding: 10px;
+        }
+         .header-title{
+            padding: 5px;
+            border-bottom: solid 1px;
+            background-color: #9b9ba0 ;
+            color: #fff;
+
+         }
+
+        th
+        {
+            padding: 5px;
+            border-bottom: solid 1px;
+            background-color: #EBEFF2;
+        }
+
+        td
+        {
+            border-right:solid 1px;
+            padding-bottom: 10px;   
+            padding-left: 5px;
+            padding-top: 10px;  
+        }
+        table{
+            border-left: solid 2px black;
+        }
+        tr
+        {
+            transition-duration: .5s;
+            border-bottom: 1px solid #bababa;
+        }
+
+        tr:hover
+        {
+            opacity: 10;            
+            box-shadow: 0px 0px 5px black;          
+            background-color: #EBEFF2;
+        }
+    </style>
+</head>
+<body>
+    <br>
+    <table id="myTable" border="1" class="table"> 
+        <thead>
+        <tr style="background-color:rgb(37, 116, 75) ;color: #fff">
+            <td colspan="20" align="center"><p style="font-size: 20px;"><b>Customer List</b></p></td>
+        </tr> 
+        <tr> 
+            <th>Id</th>
+            <th>First Name</th>
+            <th>Last Name</th>
+            <th>Email</th>
+            <th>phone</th>
+            <th>Password</th>
+            <th>DOB</th>
+            <th>Gender</th>
+            <th>Weight</th>                
+            <th>Height</th>                               
+            <th>level</th>
+            <th>Address</th>
+            <th>Latitude</th>   
+            <th>Longitude</th> 
+            <th>Login_type (Simple, Google, Facebook)</th>
+            <th>Step</th>  
+            <th>Social_id</th>
+            <th>Goal</th>
+
+        </tr> 
+        </thead> 
+        <tbody> 
+            <% for (var i = 0; i < data.length; i++) { %>
+                <tr> 
+                    <td><%= data[i].id %></td>
+                    <td><%= data[i].first_name %></td> 
+                    <td><%= data[i].last_name %></td> 
+                    <td><%= data[i].email %></td>
+                    <td><%= data[i].phone %></td>    
+                    <td><%= data[i].password %></td>                    
+                    <td><%= data[i].dob %></td>                    
+                    <td><%= data[i].gender %></td> 
+                    <td><%= data[i].weight %></td>
+                    <td><%= data[i].height %></td>
+                    <td><%= data[i].level %></td>
+                    <td><%= data[i].address %></td>
+                    <td><%= data[i].latitude %></td>
+                    <td><%= data[i].longitude %></td>
+                    <td><%= data[i].login_type %></td>
+                    <td><%= data[i].step %></td>
+                    <td><%= data[i].social_id %></td>
+                    <td><%= data[i].goal_id %></td>
+                </tr> 
+            <% } %>
+        </tbody> 
+    </table> 
+</body>
+</html>
