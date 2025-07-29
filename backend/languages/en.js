@@ -52,6 +52,10 @@ module.exports = {
     "password_changed": "Password changed successfully",
     "invalid_old_password": "Invalid old password",
     "email_exist": "Email already exist",
+    "not_verified": "Your account is not verified. Please verify your account to continue.",
+    "not_verified_otp_sent": "OTP sent to your email, Please verify your account to continue.",
+    "account_is_deactivated": "Your account is deactivated. Please contact support for assistance.",
+    "choose_subscription_plan": "Please choose a subscription plan to continue.",
     
     // Loyalty
     "invalid_credits": "The From Credits value must be less than the Upto Credits value.",

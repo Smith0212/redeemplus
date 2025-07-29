@@ -1,4 +1,4 @@
-const { SELECT, INSERT, UPDATE, DELETE } = require('../../utils/SQLWorker');
+ const { SELECT, INSERT, UPDATE, DELETE } = require('../../utils/SQLWorker');
 const { sendResponse } = require('../../middleware');
 const common = require('../../utils/common');
 const moment = require('moment');

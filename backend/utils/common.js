@@ -47,10 +47,58 @@ const common = {
         }
     },
 
-    generateOtp: async (country_code, phone) => {
-        let otp = '1111';
-        return otp;
-    },
+   
+
+
+    // // Update user details in tbl_user (PostgreSQL, async/await)
+    // updateUserInfo: async (user_id, data) => {
+    //     if (!user_id || !data || Object.keys(data).length === 0) {
+    //         throw new Error("Invalid user ID or no data provided");
+    //     }
+
+    //     // Build SET clause dynamically
+    //     const setClauses = [];
+    //     const values = [];
+    //     let idx = 1;
+    //     for (const key in data) {
+    //         setClauses.push(`"${key}" = $${idx++}`);
+    //         values.push(data[key]);
+    //     }
+    //     values.push(user_id); // For WHERE clause
+
+    //     const updateQuery = `UPDATE tbl_user SET ${setClauses.join(', ')} WHERE id = $${idx} RETURNING *`;
+
+    //     const result = await SELECT.One(updateQuery, false, values);
+    //     if (!result) {
+    //         throw new Error("User not found or no changes made");
+    //     }
+    //     return result;
+    // },
+
+    // // Update device details in tbl_device_info (PostgreSQL, async/await)
+    // updateDeviceInfo: async (user_id, data) => {
+    //     if (!user_id || !data || Object.keys(data).length === 0) {
+    //         throw new Error("Invalid user ID or no data provided");
+    //     }
+
+    //     // Build SET clause dynamically
+    //     const setClauses = [];
+    //     const values = [];
+    //     let idx = 1;
+    //     for (const key in data) {
+    //         setClauses.push(`"${key}" = $${idx++}`);
+    //         values.push(data[key]);
+    //     }
+    //     values.push(user_id); // For WHERE clause
+
+    //     const updateQuery = `UPDATE tbl_device_info SET ${setClauses.join(', ')} WHERE user_id = $${idx} RETURNING *`;
+
+    //     const result = await SELECT.One(updateQuery, false, values);
+    //     if (!result) {
+    //         throw new Error("No rows updated. Check if user_id exists.");
+    //     }
+    //     return result;
+    // },
 
     utcToLocal: (utcTime, timezone, inputTimeFormat = undefined, outputTimeFormat = undefined) => {
         // Parse the provided time string as UTC time

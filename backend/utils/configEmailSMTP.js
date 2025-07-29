@@ -15,6 +15,20 @@ let ugandaTransporter = nodemailer.createTransport({
     rateLimit: 5
 });
 
+let indiaTransporter = nodemailer.createTransport({
+    host: 'smtp.office365.com',
+    port: 587,
+    secure: false,
+    auth: {
+        user: process.env.EMAIL_SMTP_INDIA_USERNAME, // India Office 365 email address
+        pass: process.env.EMAIL_SMTP_INDIA_PASSWORD // India Office 365 email password
+    },
+    pool: true,
+    maxConnections: 3,
+    rateDelta: 1000,
+    rateLimit: 5
+});
+
 // Create a transporter object for Kenya using the default SMTP transport
 let kenyaTransporter = nodemailer.createTransport({
     host: 'smtp.office365.com',
@@ -68,7 +82,27 @@ function sendKenyaMail(mailOptions) {
     });
 }
 
+// Function to send email using India transporter
+function sendIndiaMail(mailOptions) {
+    return new Promise((resolve, reject) => {
+        indiaTransporter.sendMail(mailOptions, (error, info) => {
+            if (error) {
+                reject({
+                    error: error?.message,
+                    status: false
+                });
+            } else {
+                resolve({
+                    status: true,
+                    info: info
+                });
+            }
+        });
+    });
+}
+
 module.exports = {
     sendUgandaMail,
-    sendKenyaMail
+    sendKenyaMail,
+    sendIndiaMail
 };

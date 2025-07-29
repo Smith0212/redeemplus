@@ -74,8 +74,8 @@ class Utility {
                 callback(err, null);
             }
 
-            if (results.length > 0) {
-                console.log("Results1:", results);
+                if (results.length > 0) {
+                    console.log("Results1:", results);
                 callback(null, results[0]);
             } else {
                 callback(new Error('User not found'), null);
