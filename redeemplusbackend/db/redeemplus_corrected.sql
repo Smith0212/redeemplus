@@ -2,14 +2,25 @@
 CREATE TABLE tbl_business_categories (
     id BIGSERIAL PRIMARY KEY,
     category_name VARCHAR(100) NOT NULL,
-    sub_category_name VARCHAR(100),
     is_active BOOLEAN DEFAULT TRUE,
     is_deleted BOOLEAN DEFAULT FALSE,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
 );
 
--- Users table (corrected with missing fields)
+-- subcategories
+CREATE TABLE tbl_business_subcategories (
+    id BIGSERIAL PRIMARY KEY,
+    category_id BIGINT NOT NULL,
+    subcategory_name VARCHAR(100) NOT NULL,
+    is_active BOOLEAN DEFAULT TRUE,
+    is_deleted BOOLEAN DEFAULT FALSE,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (category_id) REFERENCES tbl_business_categories(id) ON DELETE CASCADE
+);
+
+-- Users table
 CREATE TABLE tbl_users (
     id BIGSERIAL PRIMARY KEY,
     username VARCHAR(32) UNIQUE,
@@ -24,7 +35,7 @@ CREATE TABLE tbl_users (
     is_verified BOOLEAN DEFAULT FALSE,
     step INTEGER DEFAULT 1,
     avg_rating NUMERIC(3,2),
-    business_category_id BIGINT,
+    business_subcategory_id BIGINT,
     dob DATE,
     instagram_url VARCHAR(255),
     tiktok_url VARCHAR(255),
@@ -40,7 +51,7 @@ CREATE TABLE tbl_users (
     is_deleted BOOLEAN DEFAULT FALSE,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (business_category_id) REFERENCES tbl_business_categories(id) ON DELETE SET NULL
+    FOREIGN KEY (business_subcategory_id) REFERENCES tbl_business_subcategories(id) ON DELETE SET NULL
 );
 
 -- OTP table (missing from original schema)
@@ -49,9 +60,7 @@ CREATE TABLE tbl_otp (
     user_id BIGINT NOT NULL,
     otp VARCHAR(6) NOT NULL,
     expires_at TIMESTAMP WITH TIME ZONE NOT NULL,
-    action VARCHAR(20) DEFAUL{
-    
-}T 'signup',
+    action VARCHAR(20) DEFAULT 'signup',
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (user_id) REFERENCES tbl_users(id) ON DELETE CASCADE,
@@ -133,24 +142,47 @@ CREATE TABLE tbl_user_memberships (
     FOREIGN KEY (payment_id) REFERENCES tbl_payments(id) ON DELETE SET NULL
 );
 
--- Offer types
-CREATE TABLE tbl_offer_types (
+-- CREATE TABLE tbl_offer_types (
+--     id BIGSERIAL PRIMARY KEY,
+--     offer_category_name VARCHAR(128) NOT NULL,
+--     offer_subcategory_name VARCHAR(128),
+--     offer_subcategory_image TEXT,
+--     is_active BOOLEAN DEFAULT TRUE,
+--     is_deleted BOOLEAN DEFAULT FALSE,
+--     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+--     updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+-- );
+
+-- Offer categories
+CREATE TABLE tbl_offer_categories (
     id BIGSERIAL PRIMARY KEY,
     offer_category_name VARCHAR(128) NOT NULL,
-    offer_subcategory_name VARCHAR(128),
-    offer_subcategory_image TEXT,
+    offer_category_image TEXT,
     is_active BOOLEAN DEFAULT TRUE,
     is_deleted BOOLEAN DEFAULT FALSE,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
 
+-- offer subcategories
+CREATE TABLE tbl_offer_subcategories (
+    id BIGSERIAL PRIMARY KEY,
+    offer_category_id BIGINT NOT NULL,
+    offer_subcategory_name VARCHAR(128) NOT NULL,
+    offer_subcategory_image TEXT,
+    is_active BOOLEAN DEFAULT TRUE,
+    is_deleted BOOLEAN DEFAULT FALSE,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (offer_category_id) REFERENCES tbl_offer_categories(id) ON DELETE CASCADE
+);
+
 -- Offers
 CREATE TABLE tbl_offers (
     id BIGSERIAL PRIMARY KEY,
     user_id BIGINT NOT NULL,
-    offer_type_id BIGINT,
-    business_category_id BIGINT,
+    offer_subcategory_id BIGINT,
+    business_subcategory_id BIGINT,
     image TEXT,
     title VARCHAR(100) NOT NULL,
     subtitle VARCHAR(255),
@@ -182,8 +214,8 @@ CREATE TABLE tbl_offers (
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (user_id) REFERENCES tbl_users(id) ON DELETE CASCADE,
-    FOREIGN KEY (business_category_id) REFERENCES tbl_business_categories(id) ON DELETE SET NULL,
-    FOREIGN KEY (offer_type_id) REFERENCES tbl_offer_types(id) ON DELETE SET NULL
+    FOREIGN KEY (business_subcategory_id) REFERENCES tbl_business_subcategories(id) ON DELETE SET NULL,
+    FOREIGN KEY (offer_subcategories_id) REFERENCES tbl_offer_subcategories(id) ON DELETE SET NULL
 );
 
 -- Offer valid times
@@ -463,57 +495,181 @@ INSERT INTO tbl_membership_plans (name, price, duration_days, offer_limit, visib
 ('Silver', 15.00, 365, 120, 30, FALSE, FALSE, TRUE, TRUE, FALSE),
 ('Gold', 30.00, 365, NULL, 90, TRUE, TRUE, TRUE, TRUE, TRUE);
 
--- Insert default offer types
-INSERT INTO tbl_offer_types (offer_category_name, offer_subcategory_name) VALUES
-('Buy & Get Free', 'Buy 1 Get 1 Free'),
-('Buy & Get Free', 'Buy 1 Get 2 Free'),
-('Buy & Get Free', 'Buy 1 Get 3 Free'),
-('Buy & Get Free', 'Buy 2 Get 1 Free'),
-('Buy & Get Free', 'Buy 2 Get 2 Free'),
-('Buy & Get Free', 'Buy 2 Get 3 Free'),
-('Buy & Get Free', 'Buy 3 Get 1 Free'),
-('Buy & Get Free', 'Buy 3 Get 2 Free'),
-('Buy & Get Free', 'Buy 3 Get 3 Free'),
-('Discount Deal', 'Percentage Discount'),
-('Package Deal', 'Bundle Offer'),
-('24H Deal', 'Limited Time Offer');
+-- Subcategories for "Buy and Get Offers" (Category ID: 1)
+INSERT INTO tbl_offer_subcategories (offer_category_id, offer_subcategory_name)
+VALUES
+(1, 'Buy 1, Get 1 Free'),
+(1, 'Buy 1, Get 2 Free'),
+(1, 'Buy 1, Get 3 Free'),
+(1, 'Buy 2, Get 1 Free'),
+(1, 'Buy 2, Get 2 Free'),
+(1, 'Buy 2, Get 3 Free'),
+(1, 'Buy 3, Get 1 Free'),
+(1, 'Buy 3, Get 2 Free'),
+(1, 'Buy 3, Get 3 Free');
 
--- Insert default business categories
-INSERT INTO tbl_business_categories (category_name, sub_category_name) VALUES
-('Food & Beverage', 'Restaurants'),
-('Food & Beverage', 'Coffee Shops'),
-('Food & Beverage', 'Fast Food'),
-('Retail', 'Clothing'),
-('Retail', 'Electronics'),
-('Retail', 'Books'),
-('Services', 'Beauty & Spa'),
-('Services', 'Automotive'),
-('Services', 'Health & Fitness'),
-('Entertainment', 'Movies'),
-('Entertainment', 'Gaming'),
-('Travel', 'Hotels'),
-('Travel', 'Transportation');
+-- Subcategories for "Special Offers" (Category ID: 2)
+INSERT INTO tbl_offer_subcategories (offer_category_id, offer_subcategory_name)
+VALUES
+(2, 'Package Deal'),
+(2, '24hrs Deal'),
+(2, 'Discount Deal');
 
--- Insert default report reasons
-INSERT INTO tbl_report_reasons (report_type, reason) VALUES
-('user', 'Fake or misleading account'),
-('user', 'Inappropriate profile image'),
-('user', 'Harassment or abuse'),
-('user', 'Spam or scam'),
-('user', 'Impersonation'),
-('user', 'Offensive language'),
-('user', 'Other'),
-('offer', 'Misleading information'),
-('offer', 'Inappropriate content'),
-('offer', 'Spam'),
-('offer', 'Fake offer'),
-('offer', 'Offensive content'),
-('offer', 'Other'),
-('problem', 'App crash'),
-('problem', 'Feature not working'),
-('problem', 'Payment issue'),
-('problem', 'Account issue'),
-('problem', 'Other');
+INSERT INTO tbl_business_categories (category_name) VALUES
+('Automotive'),
+('Food & Beverages'),
+('Property Listings'),
+('Travel & Leisure'),
+('Beauty & Personal Care'),
+('Clothing & Accessories'),
+('Health & Wellness'),
+('Furniture & Decor'),
+('Electronics'),
+('Education & Learning'),
+('Sports & Outdoors'),
+('Pets & Animals'),
+('Banking & Insurance'),
+('Home Services'),
+('Transportation & Mobility'),
+('Others');
+
+-- Automotive (1)
+INSERT INTO tbl_business_subcategories (category_id, subcategory_name) VALUES
+(1, 'Car For Sale'),
+(1, 'Auto Parts'),
+(1, 'Automotive Services'),
+(1, 'Heavy Machinery'),
+(1, 'Motorcycles'),
+(1, 'Electric Cars');
+
+-- Food & Beverages (2)
+INSERT INTO tbl_business_subcategories (category_id, subcategory_name) VALUES
+(2, 'Restaurants'),
+(2, 'Coffee Shops'),
+(2, 'Bakeries'),
+(2, 'Buffet & Brunch Deals'),
+(2, 'Catering Services');
+
+-- Property Listings (3)
+INSERT INTO tbl_business_subcategories (category_id, subcategory_name) VALUES
+(3, 'Properties for Rent'),
+(3, 'Properties for Sale'),
+(3, 'Lands'),
+(3, 'Commercial Properties');
+
+-- Travel & Leisure (4)
+INSERT INTO tbl_business_subcategories (category_id, subcategory_name) VALUES
+(4, 'Hotels'),
+(4, 'Car Rentals'),
+(4, 'Flights'),
+(4, 'Tours, Attractions & Cruises'),
+(4, 'Entertainment Tickets'),
+(4, 'Kids & Family Activities'),
+(4, 'Helicopter Tours');
+
+-- Beauty & Personal Care (5)
+INSERT INTO tbl_business_subcategories (category_id, subcategory_name) VALUES
+(5, 'Hair & Beauty Salons'),
+(5, 'Skincare & Cosmetics'),
+(5, 'Nail & Makeup Services'),
+(5, 'Barber Shops'),
+(5, 'Spas & Wellness');
+
+-- Clothing & Accessories (6)
+INSERT INTO tbl_business_subcategories (category_id, subcategory_name) VALUES
+(6, 'Men’s Clothing'),
+(6, 'Women’s Clothing'),
+(6, 'Kids & Baby Clothing'),
+(6, 'Footwear'),
+(6, 'Bags & Accessories'),
+(6, 'Perfumes & Fragrances'),
+(6, 'Watches & Jewellery');
+
+-- Health & Wellness (7)
+INSERT INTO tbl_business_subcategories (category_id, subcategory_name) VALUES
+(7, 'Hospitals & Clinics'),
+(7, 'Medical Services'),
+(7, 'Childcare & Pediatric Care'),
+(7, 'Pharmacies & Wellness Products'),
+(7, 'Fitness & Wellness Memberships'),
+(7, 'Nutrition & Diet Services');
+
+-- Furniture & Decor (8)
+INSERT INTO tbl_business_subcategories (category_id, subcategory_name) VALUES
+(8, 'Living Room Furniture'),
+(8, 'Bedroom Furniture'),
+(8, 'Dining & Kitchen Furniture'),
+(8, 'Office Furniture'),
+(8, 'Outdoor Furniture'),
+(8, 'Mattress & Bedding');
+
+-- Electronics (9)
+INSERT INTO tbl_business_subcategories (category_id, subcategory_name) VALUES
+(9, 'Smartphones & Tablets'),
+(9, 'Laptops & Computers'),
+(9, 'Cameras & Photography'),
+(9, 'Gaming & Accessories'),
+(9, 'Home Appliances'),
+(9, 'Audio & TVs');
+
+-- Education & Learning (10)
+INSERT INTO tbl_business_subcategories (category_id, subcategory_name) VALUES
+(10, 'Online Courses'),
+(10, 'Tutors & Coaching'),
+(10, 'Books & Study Materials'),
+(10, 'Schools & Colleges'),
+(10, 'Language Learning'),
+(10, 'Education E-Learning');
+
+-- Sports & Outdoors (11)
+INSERT INTO tbl_business_subcategories (category_id, subcategory_name) VALUES
+(11, 'Sports Equipment & Apparel'),
+(11, 'Outdoor Gear & Adventure'),
+(11, 'Fitness Classes & Training'),
+(11, 'Sports Nutrition & Supplements'),
+(11, 'Sports Events & Ticketing'),
+(11, 'Outdoor Adventure Activities');
+
+-- Pets & Animals (12)
+INSERT INTO tbl_business_subcategories (category_id, subcategory_name) VALUES
+(12, 'Pet Food & Treats'),
+(12, 'Pet Supplies & Accessories'),
+(12, 'Pet Grooming'),
+(12, 'Pet Health & Wellness');
+
+-- Banking & Insurance (13)
+INSERT INTO tbl_business_subcategories (category_id, subcategory_name) VALUES
+(13, 'Banking Services'),
+(13, 'Exchange Services'),
+(13, 'Insurance Plans'),
+(13, 'Professional Services');
+
+-- Home Services (14)
+INSERT INTO tbl_business_subcategories (category_id, subcategory_name) VALUES
+(14, 'Home Maintenance'),
+(14, 'Laundry & Cleaning'),
+(14, 'Moving & Storage'),
+(14, 'Construction & Painting'),
+(14, 'Gardening Services');
+
+-- Transportation & Mobility (15)
+INSERT INTO tbl_business_subcategories (category_id, subcategory_name) VALUES
+(15, 'Railway & Public Transport'),
+(15, 'Taxi & Ride Services'),
+(15, 'Bike & Scooter Rentals'),
+(15, 'Boat & Ferry Rides'),
+(15, 'Parking Services');
+
+-- Others (16)
+INSERT INTO tbl_business_subcategories (category_id, subcategory_name) VALUES
+(16, 'Local Businesses'),
+(16, 'Local Brands'),
+(16, 'Community Services'),
+(16, 'Charity & Donations'),
+(16, 'Visa & Immigration Services'),
+(16, 'Custom & Personalized Items'),
+(16, 'Graphic Design & Branding');
+
 
 -- Insert default static pages
 INSERT INTO tbl_static_pages (page_key, title, content) VALUES

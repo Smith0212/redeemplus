@@ -6,8 +6,9 @@ const router = express.Router()
 
 // Get business categories
 router.post(
-  "/getbusinesscategories",
+  "/getBusinessCategories",
   checkApiKey,
+  checkToken,
   validateJoi(
     Joi.object({
       include_subcategories: Joi.boolean().optional(),
@@ -18,8 +19,9 @@ router.post(
 
 // Get offer types
 router.post(
-  "/getoffertypes",
+  "/getOfferTypes",
   checkApiKey,
+  checkToken,
   validateJoi(
     Joi.object({
       include_subcategories: Joi.boolean().optional(),

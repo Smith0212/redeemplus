@@ -11,8 +11,8 @@ router.post(
   checkToken,
   validateJoi(
     Joi.object({
-      offer_type_id: Joi.number().required(),
-      business_category_id: Joi.number().optional(),
+      offer_subcategory_id: Joi.number().required(),
+      business_subcategory_id: Joi.number().optional(),
       image: Joi.string().required(),
       title: Joi.string().max(100).required(),
       subtitle: Joi.string().max(255).optional(),
@@ -69,7 +69,7 @@ router.post(
       business_category_id: Joi.number().optional(), // For backward compatibility
       business_category_ids: Joi.array().items(Joi.number()).optional(), // New array parameter
       sort_by: Joi.string()
-        .valid("created_at", "price_low", "price_high", "rating", "distance", "relevance")
+        .valid("created_at", "lowest_price_first", "highest_price_first", "rating", "near_by", "relevance")
         .optional()
         .default("created_at"),
       latitude: Joi.number().when('type', {

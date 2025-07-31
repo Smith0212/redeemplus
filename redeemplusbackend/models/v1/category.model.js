@@ -5,13 +5,23 @@ const responseCode = require("../../config/responseCode")
 const category_model = {
   async getBusinessCategories(req, res) {
     try {
-      // Always fetch with subcategories
+      // Fetch categories and their subcategories
       const categoriesQuery = `
         SELECT 
-          id, category_name, sub_category_name, created_at, updated_at
-        FROM tbl_business_categories 
-        WHERE is_active = TRUE AND is_deleted = FALSE
-        ORDER BY category_name ASC, sub_category_name ASC
+          c.id AS category_id,
+          c.category_name,
+          c.created_at AS category_created_at,
+          c.updated_at AS category_updated_at,
+          sc.id AS subcategory_id,
+          sc.subcategory_name,
+          sc.created_at AS subcategory_created_at,
+          sc.updated_at AS subcategory_updated_at
+        FROM tbl_business_categories c
+        LEFT JOIN tbl_business_subcategories sc
+          ON c.id = sc.category_id
+          AND sc.is_active = TRUE AND sc.is_deleted = FALSE
+        WHERE c.is_active = TRUE AND c.is_deleted = FALSE
+        ORDER BY c.category_name ASC, sc.subcategory_name ASC
       `
 
       const { rows } = await pool.query(categoriesQuery)
@@ -19,18 +29,21 @@ const category_model = {
       // Group by category
       const groupedCategories = {}
       rows.forEach((row) => {
-        if (!groupedCategories[row.category_name]) {
+        if (!groupedCategories[row.category_name]) {  
           groupedCategories[row.category_name] = {
+            id: row.category_id,
             category_name: row.category_name,
+            created_at: row.category_created_at,
+            updated_at: row.category_updated_at,
             subcategories: [],
           }
         }
-        if (row.sub_category_name) {
+        if (row.subcategory_id && row.subcategory_name) {
           groupedCategories[row.category_name].subcategories.push({
-            id: row.id,
-            sub_category_name: row.sub_category_name,
-            created_at: row.created_at,
-            updated_at: row.updated_at,
+            id: row.subcategory_id,
+            subcategory_name: row.subcategory_name,
+            created_at: row.subcategory_created_at,
+            updated_at: row.subcategory_updated_at,
           })
         }
       })
@@ -45,33 +58,49 @@ const category_model = {
 
   async getOfferTypes(req, res) {
     try {
-      const offerTypesQuery = `
+      // Fetch categories and their subcategories
+      const offerCategoriesQuery = `
         SELECT 
-          id, offer_category_name, offer_subcategory_name, 
-          offer_subcategory_image, created_at, updated_at
-        FROM tbl_offer_types 
-        WHERE is_active = TRUE AND is_deleted = FALSE
-        ORDER BY offer_category_name ASC, offer_subcategory_name ASC
+          oc.id AS category_id,
+          oc.offer_category_name,
+          oc.offer_category_image,
+          oc.created_at AS category_created_at,
+          oc.updated_at AS category_updated_at,
+          sc.id AS subcategory_id,
+          sc.offer_subcategory_name,
+          sc.offer_subcategory_image,
+          sc.created_at AS subcategory_created_at,
+          sc.updated_at AS subcategory_updated_at
+        FROM tbl_offer_categories oc
+        LEFT JOIN tbl_offer_subcategories sc
+          ON oc.id = sc.offer_category_id
+          AND sc.is_active = TRUE AND sc.is_deleted = FALSE
+        WHERE oc.is_active = TRUE AND oc.is_deleted = FALSE
+        ORDER BY oc.offer_category_name ASC, sc.offer_subcategory_name ASC
       `
 
-      const { rows } = await pool.query(offerTypesQuery)
+      const { rows } = await pool.query(offerCategoriesQuery)
 
       // Group by category
       const groupedOfferTypes = {}
       rows.forEach((row) => {
         if (!groupedOfferTypes[row.offer_category_name]) {
           groupedOfferTypes[row.offer_category_name] = {
+            id: row.category_id,
             offer_category_name: row.offer_category_name,
+            offer_category_image: row.offer_category_image,
+            created_at: row.category_created_at,
+            updated_at: row.category_updated_at,
             subcategories: [],
           }
         }
-        if (row.offer_subcategory_name) {
+        if (row.subcategory_id && row.offer_subcategory_name) {
           groupedOfferTypes[row.offer_category_name].subcategories.push({
-            id: row.id,
+            id: row.subcategory_id,
             offer_subcategory_name: row.offer_subcategory_name,
             offer_subcategory_image: row.offer_subcategory_image,
-            created_at: row.created_at,
-            updated_at: row.updated_at,
+            created_at: row.subcategory_created_at,
+            updated_at: row.subcategory_updated_at,
           })
         }
       })

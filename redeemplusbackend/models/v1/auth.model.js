@@ -110,7 +110,7 @@ let auth_model = {
 
             const newUserId = insertRows[0].id;
 
-            const user_token = jwt.sign({ user_id: newUserId }, process.env.JWT_SECRET_KEY, { expiresIn: '1d' });
+            const user_token = jwt.sign({ user_id: newUserId }, process.env.JWT_SECRET_KEY, { expiresIn: '7d' });
 
             const insertDeviceQuery = `
             INSERT INTO tbl_device_info 
@@ -410,7 +410,7 @@ let auth_model = {
             }
 
             // Generate token
-            const user_token = jwt.sign({ user_id: user.user_id }, process.env.JWT_SECRET_KEY, { expiresIn: '1d' });
+            const user_token = jwt.sign({ user_id: user.user_id }, process.env.JWT_SECRET_KEY, { expiresIn: '7d' });
             // Update device info only, do not insert
             const updateDeviceQuery = `
                 UPDATE tbl_device_info SET

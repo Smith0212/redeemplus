@@ -7,8 +7,8 @@ const offer_model = {
     try {
       const user_id = req.user.id
       const {
-        offer_type_id,
-        business_category_id,
+        offer_subcategory_id,
+        business_subcategory_id,
         image,
         title,
         subtitle,
@@ -77,7 +77,7 @@ const offer_model = {
         // Create offer
         const offerQuery = `
                     INSERT INTO tbl_offers (
-                        user_id, offer_type_id, business_category_id, image, title, subtitle,
+                        user_id, offer_subcategory_id, business_subcategory_id, image, title, subtitle,
                         description, terms_of_use, discount_percentage, total_price, old_price,
                         duration, quantity_available, quantity_per_user, pin_code,
                         is_redeemable_in_store, is_delivery_available, delivery_fee,
@@ -91,8 +91,8 @@ const offer_model = {
 
         const offerResult = await client.query(offerQuery, [
           user_id,
-          offer_type_id,
-          business_category_id,
+          offer_subcategory_id,
+          business_subcategory_id,
           image,
           title,
           subtitle,
@@ -151,256 +151,260 @@ const offer_model = {
     }
   },
 
-//   async getOffers(req, res) {
-//     try {
-//       const user_id = req.user.id
-//       const {
-//         page = 1,
-//         limit = 10,
-//         category = "all", // all, nearby, subscribed
-//         offer_type,
-//         business_category_id,
-//         sort_by = "created_at", // created_at, price_low, price_high, rating, distance
-//         latitude,
-//         longitude,
-//         search_query,
-//         min_rating, 
-//         max_rating,
-//         redeem_method, // store, delivery, both
-//         listed_in_rplus,
-//       } = req.body
+  //   async getOffers(req, res) {
+  //     try {
+  //       const user_id = req.user.id
+  //       const {
+  //         page = 1,
+  //         limit = 10,
+  //         category = "all", // all, nearby, subscribed
+  //         offer_type,
+  //         business_category_id,
+  //         sort_by = "created_at", // created_at, price_low, price_high, rating, distance
+  //         latitude,
+  //         longitude,
+  //         search_query,
+  //         min_rating, 
+  //         max_rating,
+  //         redeem_method, // store, delivery, both
+  //         listed_in_rplus,
+  //       } = req.body
 
-//       const offset = (page - 1) * limit
-//       const whereConditions = ["o.is_active = TRUE", "o.is_deleted = FALSE", "o.end_date > CURRENT_TIMESTAMP"]
-//       const joinConditions = []
-//       let orderBy = "o.created_at DESC"
-//       const queryParams = []
-//       let paramIndex = 1
+  //       const offset = (page - 1) * limit
+  //       const whereConditions = ["o.is_active = TRUE", "o.is_deleted = FALSE", "o.end_date > CURRENT_TIMESTAMP"]
+  //       const joinConditions = []
+  //       let orderBy = "o.created_at DESC"
+  //       const queryParams = []
+  //       let paramIndex = 1
 
-//       // Category filter
-//       if (category === "nearby" && latitude && longitude) {
-//         // Add distance calculation and filter
-//         whereConditions.push(`
-//                     (6371 * acos(cos(radians($${paramIndex})) * cos(radians(CAST(o.offer_latitude AS FLOAT))) * 
-//                     cos(radians(CAST(o.offer_longitude AS FLOAT)) - radians($${paramIndex + 1})) + 
-//                     sin(radians($${paramIndex})) * sin(radians(CAST(o.offer_latitude AS FLOAT))))) <= 50
-//                 `)
-//         queryParams.push(latitude, longitude)
-//         paramIndex += 2
-//       } else if (category === "subscribed") {
-//         joinConditions.push(`
-//           JOIN tbl_user_subscriptions subscribed_us ON o.user_id = subscribed_us.business_id 
-//           AND subscribed_us.user_id = $${paramIndex} AND subscribed_us.is_active = TRUE AND subscribed_us.is_deleted = FALSE
-//         `)
+  //       // Category filter
+  //       if (category === "nearby" && latitude && longitude) {
+  //         // Add distance calculation and filter
+  //         whereConditions.push(`
+  //                     (6371 * acos(cos(radians($${paramIndex})) * cos(radians(CAST(o.offer_latitude AS FLOAT))) * 
+  //                     cos(radians(CAST(o.offer_longitude AS FLOAT)) - radians($${paramIndex + 1})) + 
+  //                     sin(radians($${paramIndex})) * sin(radians(CAST(o.offer_latitude AS FLOAT))))) <= 50
+  //                 `)
+  //         queryParams.push(latitude, longitude)
+  //         paramIndex += 2
+  //       } else if (category === "subscribed") {
+  //         joinConditions.push(`
+  //           JOIN tbl_user_subscriptions subscribed_us ON o.user_id = subscribed_us.business_id 
+  //           AND subscribed_us.user_id = $${paramIndex} AND subscribed_us.is_active = TRUE AND subscribed_us.is_deleted = FALSE
+  //         `)
 
-//         queryParams.push(user_id)
-//         paramIndex++
-//       }
+  //         queryParams.push(user_id)
+  //         paramIndex++
+  //       }
 
-//       // Offer type filter
-//       if (offer_type) {
-//         whereConditions.push(`o.offer_type_id = $${paramIndex}`)
-//         queryParams.push(offer_type)
-//         paramIndex++
-//       }
+  //       // Offer type filter
+  //       if (offer_type) {
+  //         whereConditions.push(`o.offer_type_id = $${paramIndex}`)
+  //         queryParams.push(offer_type)
+  //         paramIndex++
+  //       }
 
-//       // Business category filter
-//       if (business_category_id) {
-//         whereConditions.push(`o.business_category_id = $${paramIndex}`)
-//         queryParams.push(business_category_id)
-//         paramIndex++
-//       }
+  //       // Business category filter
+  //       if (business_category_id) {
+  //         whereConditions.push(`o.business_category_id = $${paramIndex}`)
+  //         queryParams.push(business_category_id)
+  //         paramIndex++
+  //       }
 
-//       // Search query
-//       if (search_query) {
-//         whereConditions.push(
-//           `(o.title ILIKE $${paramIndex} OR o.subtitle ILIKE $${paramIndex} OR u.username ILIKE $${paramIndex})`,
-//         )
-//         queryParams.push(`%${search_query}%`)
-//         paramIndex++
-//       }
+  //       // Search query
+  //       if (search_query) {
+  //         whereConditions.push(
+  //           `(o.title ILIKE $${paramIndex} OR o.subtitle ILIKE $${paramIndex} OR u.username ILIKE $${paramIndex})`,
+  //         )
+  //         queryParams.push(`%${search_query}%`)
+  //         paramIndex++
+  //       }
 
-//       // Rating filter
-//       if (min_rating || max_rating) {
-//         joinConditions.push(
-//           "LEFT JOIN (SELECT business_id, AVG(rating) as avg_rating FROM tbl_reviews WHERE is_active = TRUE AND is_deleted = FALSE GROUP BY business_id) r ON o.user_id = r.business_id",
-//         )
+  //       // Rating filter
+  //       if (min_rating || max_rating) {
+  //         joinConditions.push(
+  //           "LEFT JOIN (SELECT business_id, AVG(rating) as avg_rating FROM tbl_reviews WHERE is_active = TRUE AND is_deleted = FALSE GROUP BY business_id) r ON o.user_id = r.business_id",
+  //         )
 
-//         if (min_rating) {
-//           whereConditions.push(`COALESCE(r.avg_rating, 0) >= $${paramIndex}`)
-//           queryParams.push(min_rating)
-//           paramIndex++
-//         }
-//         if (max_rating) {
-//           whereConditions.push(`COALESCE(r.avg_rating, 0) <= $${paramIndex}`)
-//           queryParams.push(max_rating)
-//           paramIndex++
-//         }
-//       }
+  //         if (min_rating) {
+  //           whereConditions.push(`COALESCE(r.avg_rating, 0) >= $${paramIndex}`)
+  //           queryParams.push(min_rating)
+  //           paramIndex++
+  //         }
+  //         if (max_rating) {
+  //           whereConditions.push(`COALESCE(r.avg_rating, 0) <= $${paramIndex}`)
+  //           queryParams.push(max_rating)
+  //           paramIndex++
+  //         }
+  //       }
 
-//       // Redeem method filter
-//       if (redeem_method === "store") {
-//         whereConditions.push("o.is_redeemable_in_store = TRUE")
-//       } else if (redeem_method === "delivery") {
-//         whereConditions.push("o.is_delivery_available = TRUE")
-//       }
+  //       // Redeem method filter
+  //       if (redeem_method === "store") {
+  //         whereConditions.push("o.is_redeemable_in_store = TRUE")
+  //       } else if (redeem_method === "delivery") {
+  //         whereConditions.push("o.is_delivery_available = TRUE")
+  //       }
 
-//       // RedeemPlus store filter
-//       if (listed_in_rplus) {
-//         whereConditions.push("o.is_listed_in_rplus = TRUE")
-//       }
+  //       // RedeemPlus store filter
+  //       if (listed_in_rplus) {
+  //         whereConditions.push("o.is_listed_in_rplus = TRUE")
+  //       }
 
-//       // Sorting
-//       switch (sort_by) {
-//         case "price_low":
-//           orderBy = "o.total_price ASC"
-//           break
-//         case "price_high":
-//           orderBy = "o.total_price DESC"
-//           break
-//         case "rating":
-//           if (!joinConditions.some((j) => j.includes("avg_rating"))) {
-//             joinConditions.push(
-//               "LEFT JOIN (SELECT business_id, AVG(rating) as avg_rating FROM tbl_reviews WHERE is_active = TRUE AND is_deleted = FALSE GROUP BY business_id) r ON o.user_id = r.business_id",
-//             )
-//           }
-//           orderBy = "COALESCE(r.avg_rating, 0) DESC"
-//           break
-//         case "distance":
-//           if (latitude && longitude) {
-//             orderBy = `(6371 * acos(cos(radians(${latitude})) * cos(radians(CAST(o.offer_latitude AS FLOAT))) * cos(radians(CAST(o.offer_longitude AS FLOAT)) - radians(${longitude})) + sin(radians(${latitude})) * sin(radians(CAST(o.offer_latitude AS FLOAT))))) ASC`
-//           }
-//           break
-//         default:
-//           orderBy = "o.created_at DESC"
-//       }
+  //       // Sorting
+  //       switch (sort_by) {
+  //         case "price_low":
+  //           orderBy = "o.total_price ASC"
+  //           break
+  //         case "price_high":
+  //           orderBy = "o.total_price DESC"
+  //           break
+  //         case "rating":
+  //           if (!joinConditions.some((j) => j.includes("avg_rating"))) {
+  //             joinConditions.push(
+  //               "LEFT JOIN (SELECT business_id, AVG(rating) as avg_rating FROM tbl_reviews WHERE is_active = TRUE AND is_deleted = FALSE GROUP BY business_id) r ON o.user_id = r.business_id",
+  //             )
+  //           }
+  //           orderBy = "COALESCE(r.avg_rating, 0) DESC"
+  //           break
+  //         case "distance":
+  //           if (latitude && longitude) {
+  //             orderBy = `(6371 * acos(cos(radians(${latitude})) * cos(radians(CAST(o.offer_latitude AS FLOAT))) * cos(radians(CAST(o.offer_longitude AS FLOAT)) - radians(${longitude})) + sin(radians(${latitude})) * sin(radians(CAST(o.offer_latitude AS FLOAT))))) ASC`
+  //           }
+  //           break
+  //         default:
+  //           orderBy = "o.created_at DESC"
+  //       }
 
-//       // Build main query
-//       const mainQuery = `
-//                 SELECT 
-//                     o.id, o.title, o.subtitle, o.description, o.image, o.total_price, o.old_price,
-//                     o.discount_percentage, o.quantity_available, o.is_redeemable_in_store,
-//                     o.is_delivery_available, o.delivery_fee, o.view_count, o.total_redemptions,
-//                     o.start_date, o.end_date, o.created_at, o.is_listed_in_rplus,
-//                     u.id as business_id, u.username as business_name, u.profile_image as business_image,
-//                     ot.offer_category_name, ot.offer_subcategory_name,
-//                     bc.category_name as business_category,
-//                     mp.has_verified_badge,
-//                     COALESCE(rev.avg_rating, 0) as avg_rating,
-//                     COALESCE(rev.review_count, 0) as review_count,
-//                     CASE WHEN so.id IS NOT NULL THEN TRUE ELSE FALSE END as is_saved,
-//                     CASE WHEN us.id IS NOT NULL THEN TRUE ELSE FALSE END as is_subscribed,
-//                     ${
-//                       latitude && longitude
-//                         ? `
-//                         (6371 * acos(cos(radians(${latitude})) * cos(radians(CAST(o.offer_latitude AS FLOAT))) * 
-//                         cos(radians(CAST(o.offer_longitude AS FLOAT)) - radians(${longitude})) + 
-//                         sin(radians(${latitude})) * sin(radians(CAST(o.offer_latitude AS FLOAT))))) as distance
-//                     `
-//                         : "NULL as distance"
-//                     }
-//                 FROM tbl_offers o
-//                 JOIN tbl_users u ON o.user_id = u.id AND u.is_active = TRUE AND u.is_deleted = FALSE
-//                 LEFT JOIN tbl_offer_types ot ON o.offer_type_id = ot.id
-//                 LEFT JOIN tbl_business_categories bc ON o.business_category_id = bc.id
-//                 LEFT JOIN tbl_user_memberships um ON u.id = um.user_id AND um.is_active = TRUE
-//                 LEFT JOIN tbl_membership_plans mp ON um.plan_id = mp.id
-//                 LEFT JOIN (
-//                       SELECT 
-//                           business_id,
-//                           AVG(rating) as avg_rating,
-//                           COUNT(*) as review_count
-//                       FROM tbl_reviews
-//                       WHERE is_active = TRUE AND is_deleted = FALSE
-//                       GROUP BY business_id
-//                   ) rev ON o.user_id = rev.business_id
-//                 LEFT JOIN (
-//   SELECT DISTINCT ON (user_id, offer_id) *
-//   FROM tbl_saved_offers
-//   WHERE is_active = TRUE AND is_deleted = FALSE
-//   ORDER BY user_id, offer_id, id DESC
-// ) so ON o.id = so.offer_id AND so.user_id = $${paramIndex}
+  //       // Build main query
+  //       const mainQuery = `
+  //                 SELECT 
+  //                     o.id, o.title, o.subtitle, o.description, o.image, o.total_price, o.old_price,
+  //                     o.discount_percentage, o.quantity_available, o.is_redeemable_in_store,
+  //                     o.is_delivery_available, o.delivery_fee, o.view_count, o.total_redemptions,
+  //                     o.start_date, o.end_date, o.created_at, o.is_listed_in_rplus,
+  //                     u.id as business_id, u.username as business_name, u.profile_image as business_image,
+  //                     ot.offer_category_name, ot.offer_subcategory_name,
+  //                     bc.category_name as business_category,
+  //                     mp.has_verified_badge,
+  //                     COALESCE(rev.avg_rating, 0) as avg_rating,
+  //                     COALESCE(rev.review_count, 0) as review_count,
+  //                     CASE WHEN so.id IS NOT NULL THEN TRUE ELSE FALSE END as is_saved,
+  //                     CASE WHEN us.id IS NOT NULL THEN TRUE ELSE FALSE END as is_subscribed,
+  //                     ${
+  //                       latitude && longitude
+  //                         ? `
+  //                         (6371 * acos(cos(radians(${latitude})) * cos(radians(CAST(o.offer_latitude AS FLOAT))) * 
+  //                         cos(radians(CAST(o.offer_longitude AS FLOAT)) - radians(${longitude})) + 
+  //                         sin(radians(${latitude})) * sin(radians(CAST(o.offer_latitude AS FLOAT))))) as distance
+  //                     `
+  //                         : "NULL as distance"
+  //                     }
+  //                 FROM tbl_offers o
+  //                 JOIN tbl_users u ON o.user_id = u.id AND u.is_active = TRUE AND u.is_deleted = FALSE
+  //                 LEFT JOIN tbl_offer_types ot ON o.offer_type_id = ot.id
+  //                 LEFT JOIN tbl_business_categories bc ON o.business_category_id = bc.id
+  //                 LEFT JOIN tbl_user_memberships um ON u.id = um.user_id AND um.is_active = TRUE
+  //                 LEFT JOIN tbl_membership_plans mp ON um.plan_id = mp.id
+  //                 LEFT JOIN (
+  //                       SELECT 
+  //                           business_id,
+  //                           AVG(rating) as avg_rating,
+  //                           COUNT(*) as review_count
+  //                       FROM tbl_reviews
+  //                       WHERE is_active = TRUE AND is_deleted = FALSE
+  //                       GROUP BY business_id
+  //                   ) rev ON o.user_id = rev.business_id
+  //                 LEFT JOIN (
+  //   SELECT DISTINCT ON (user_id, offer_id) *
+  //   FROM tbl_saved_offers
+  //   WHERE is_active = TRUE AND is_deleted = FALSE
+  //   ORDER BY user_id, offer_id, id DESC
+  // ) so ON o.id = so.offer_id AND so.user_id = $${paramIndex}
 
-//                 LEFT JOIN (
-//   SELECT DISTINCT ON (user_id, business_id) *
-//   FROM tbl_user_subscriptions
-//   WHERE is_active = TRUE AND is_deleted = FALSE
-//   ORDER BY user_id, business_id, id DESC
-// ) us ON o.user_id = us.business_id AND us.user_id = $${paramIndex}
+  //                 LEFT JOIN (
+  //   SELECT DISTINCT ON (user_id, business_id) *
+  //   FROM tbl_user_subscriptions
+  //   WHERE is_active = TRUE AND is_deleted = FALSE
+  //   ORDER BY user_id, business_id, id DESC
+  // ) us ON o.user_id = us.business_id AND us.user_id = $${paramIndex}
 
-//                 ${joinConditions.join(" ")}
-//                 WHERE ${whereConditions.join(" AND ")}
-//                 GROUP BY o.id, u.id, ot.id, bc.id, mp.id, rev.avg_rating, rev.review_count, so.id, us.id
-//                 ORDER BY ${orderBy}
-//                 LIMIT $${paramIndex + 1} OFFSET $${paramIndex + 2}
-//             `
+  //                 ${joinConditions.join(" ")}
+  //                 WHERE ${whereConditions.join(" AND ")}
+  //                 GROUP BY o.id, u.id, ot.id, bc.id, mp.id, rev.avg_rating, rev.review_count, so.id, us.id
+  //                 ORDER BY ${orderBy}
+  //                 LIMIT $${paramIndex + 1} OFFSET $${paramIndex + 2}
+  //             `
 
-//       queryParams.push(user_id, limit, offset)
+  //       queryParams.push(user_id, limit, offset)
 
-//       // Count query (removed, as pagination details are not needed)
-//       // const countQuery = `
-//       //           SELECT COUNT(DISTINCT o.id) as total
-//       //           FROM tbl_offers o
-//       //           JOIN tbl_users u ON o.user_id = u.id AND u.is_active = TRUE AND u.is_deleted = FALSE
-//       //           ${joinConditions.join(" ")}
-//       //           WHERE ${whereConditions.join(" AND ")}
-//       //       `
-//       // console.log("Offers Query:", mainQuery, queryParams)
-//       const [offersResult] = await Promise.all([
-//         pool.query(mainQuery, queryParams),
-//         // pool.query(countQuery, queryParams.slice(0, -2)), // Remove limit and offset for count
-//       ])
+  //       // Count query (removed, as pagination details are not needed)
+  //       // const countQuery = `
+  //       //           SELECT COUNT(DISTINCT o.id) as total
+  //       //           FROM tbl_offers o
+  //       //           JOIN tbl_users u ON o.user_id = u.id AND u.is_active = TRUE AND u.is_deleted = FALSE
+  //       //           ${joinConditions.join(" ")}
+  //       //           WHERE ${whereConditions.join(" AND ")}
+  //       //       `
+  //       // console.log("Offers Query:", mainQuery, queryParams)
+  //       const [offersResult] = await Promise.all([
+  //         pool.query(mainQuery, queryParams),
+  //         // pool.query(countQuery, queryParams.slice(0, -2)), // Remove limit and offset for count
+  //       ])
 
-//       const offers = offersResult.rows
+  //       const offers = offersResult.rows
 
-//       return sendResponse(
-//         req,
-//         res,
-//         200,
-//         responseCode.SUCCESS,
-//         { keyword: "success" },
-//         {
-//           offers,
-//         },
-//       )
-//     } catch (err) {
-//       console.error("Get Offers Error:", err)
-//       return sendResponse(req, res, 500, responseCode.OPERATION_FAILED, { keyword: "failed" }, err.message)
-//     }
-//   },
+  //       return sendResponse(
+  //         req,
+  //         res,
+  //         200,
+  //         responseCode.SUCCESS,
+  //         { keyword: "success" },
+  //         {
+  //           offers,
+  //         },
+  //       )
+  //     } catch (err) {
+  //       console.error("Get Offers Error:", err)
+  //       return sendResponse(req, res, 500, responseCode.OPERATION_FAILED, { keyword: "failed" }, err.message)
+  //     }
+  //   },
 
-async listOffers(req, res) {
+  async listOffers(req, res) {
     try {
+      // offer_type and offer_type_ids will always in list so marge them
       const user_id = req.user.id;
       const {
         page = 1,
         limit = 10,
         type = "all",
-        offer_type,
-        offer_type_ids = [],
-        business_category_id,
-        business_category_ids = [],
+        business_subcategory_id,
+        business_subcategory_ids = [],
         sort_by = "created_at",
         latitude,
         longitude,
         search_query,
-        min_rating, 
+        min_rating,
         max_rating,
         redeem_method,
         redeem_methods = [],
         listed_in_rplus,
+        offer_category_id,
+        offer_category_ids = [],
+        offer_subcategory_id,
+        offer_subcategory_ids = []
       } = req.body;
 
       // Use query if search_query is not provided
       const isSearch = !!search_query;
 
       // Handle array parameters from both single value and array inputs
-      const finalOfferTypeIds = offer_type ? [offer_type] : offer_type_ids;
-      const finalBusinessCategoryIds = business_category_id ? [business_category_id] : business_category_ids;
+      const finalBusinessCategoryIds = business_subcategory_id ? [business_subcategory_id] : business_subcategory_ids;
+      const finalOfferCategoryIds = offer_category_id ? [offer_category_id] : offer_category_ids;
+      const finalOfferSubcategoryIds = offer_subcategory_id ? [offer_subcategory_id] : offer_subcategory_ids;
       const finalRedeemMethods = redeem_method ? [redeem_method] : redeem_methods;
 
       const offset = (page - 1) * limit;
-      
+
       // Get current day (0-6 where 0 is Sunday) and current time
       const currentDate = new Date();
       const currentDay = currentDate.getDay(); // 0 (Sunday) to 6 (Saturday)
@@ -414,7 +418,7 @@ async listOffers(req, res) {
         // Check valid_days (1=valid, 0=invalid)
         `SUBSTRING(o.valid_days FROM ${currentDay + 1} FOR 1) = '1'`
       ];
-      
+
       const joinConditions = [
         // Join with offer valid times and filter by current time
         `LEFT JOIN tbl_offer_valid_times ovt ON o.id = ovt.offer_id AND ovt.is_active = TRUE AND ovt.is_deleted = FALSE`,
@@ -429,7 +433,7 @@ async listOffers(req, res) {
           GROUP BY offer_id
         ) current_valid_times ON o.id = current_valid_times.offer_id`
       ];
-      
+
       // Only show offers that either have no time restrictions or are currently valid
       whereConditions.push(`(current_valid_times.is_currently_valid = TRUE OR NOT EXISTS (
         SELECT 1 FROM tbl_offer_valid_times WHERE offer_id = o.id AND is_active = TRUE AND is_deleted = FALSE
@@ -467,16 +471,23 @@ async listOffers(req, res) {
         paramIndex++;
       }
 
-      // Offer type filter
-      if (finalOfferTypeIds.length > 0) {
-        whereConditions.push(`o.offer_type_id = ANY($${paramIndex})`);
-        queryParams.push(finalOfferTypeIds);
+      // Offer category filter (array support)
+      if (finalOfferCategoryIds.length > 0) {
+        whereConditions.push(`osc.offer_category_id = ANY($${paramIndex})`);
+        queryParams.push(finalOfferCategoryIds);
         paramIndex++;
       }
 
-      // Business category filter
+      // Offer subcategory filter (array support)
+      if (finalOfferSubcategoryIds.length > 0) {
+        whereConditions.push(`o.offer_subcategory_id = ANY($${paramIndex})`);
+        queryParams.push(finalOfferSubcategoryIds);
+        paramIndex++;
+      }
+
+      // Business category filter (array support)
       if (finalBusinessCategoryIds.length > 0) {
-        whereConditions.push(`o.business_category_id = ANY($${paramIndex})`);
+        whereConditions.push(`o.business_subcategory_id = ANY($${paramIndex})`);
         queryParams.push(finalBusinessCategoryIds);
         paramIndex++;
       }
@@ -520,10 +531,10 @@ async listOffers(req, res) {
 
       // Sorting
       switch (sort_by) {
-        case "price_low":
+        case "lowest_price_first":
           orderBy = "o.total_price ASC";
           break;
-        case "price_high":
+        case "highest_price_first":
           orderBy = "o.total_price DESC";
           break;
         case "rating":
@@ -534,7 +545,7 @@ async listOffers(req, res) {
           }
           orderBy = "COALESCE(r.avg_rating, 0) DESC";
           break;
-        case "distance":
+        case "near_by":
           if (latitude && longitude) {
             orderBy = `(6371 * acos(cos(radians(${latitude})) * cos(radians(CAST(o.offer_latitude AS FLOAT))) * 
                       cos(radians(CAST(o.offer_longitude AS FLOAT)) - radians(${longitude})) + 
@@ -565,22 +576,21 @@ async listOffers(req, res) {
           o.is_delivery_available, o.delivery_fee, o.view_count, o.total_redemptions,
           o.start_date, o.end_date, o.created_at, o.is_listed_in_rplus,
           u.id as business_id, u.username, u.profile_image,
-          ot.offer_category_name, ot.offer_subcategory_name,
-          bc.category_name as business_category,
+          oc.offer_category_name, osc.offer_subcategory_name,
+          bsc.subcategory_name as business_subcategory,
           mp.has_verified_badge,
           COALESCE(rev.avg_rating, 0) as avg_rating,
           COALESCE(rev.review_count, 0) as review_count,
           CASE WHEN so.id IS NOT NULL THEN TRUE ELSE FALSE END as is_saved,
           CASE WHEN us.id IS NOT NULL THEN TRUE ELSE FALSE END as is_subscribed,
-          ${
-            latitude && longitude
-              ? `
+          ${latitude && longitude
+          ? `
               (6371 * acos(cos(radians(${latitude})) * cos(radians(CAST(o.offer_latitude AS FLOAT))) * 
               cos(radians(CAST(o.offer_longitude AS FLOAT)) - radians(${longitude})) + 
               sin(radians(${latitude})) * sin(radians(CAST(o.offer_latitude AS FLOAT))))) as distance
             `
-              : "NULL as distance"
-          },
+          : "NULL as distance"
+        },
           -- Include valid days and times information
           o.valid_days,
           (
@@ -595,8 +605,9 @@ async listOffers(req, res) {
           ) AS valid_times
         FROM tbl_offers o
         JOIN tbl_users u ON o.user_id = u.id AND u.is_active = TRUE AND u.is_deleted = FALSE
-        LEFT JOIN tbl_offer_types ot ON o.offer_type_id = ot.id
-        LEFT JOIN tbl_business_categories bc ON o.business_category_id = bc.id
+        LEFT JOIN tbl_offer_subcategories osc ON o.offer_subcategory_id = osc.id
+        LEFT JOIN tbl_offer_categories oc ON osc.offer_category_id = oc.id
+        LEFT JOIN tbl_business_subcategories bsc ON o.business_subcategory_id = bsc.id
         LEFT JOIN tbl_user_memberships um ON u.id = um.user_id AND um.is_active = TRUE
         LEFT JOIN tbl_membership_plans mp ON um.plan_id = mp.id
         LEFT JOIN (
@@ -622,7 +633,7 @@ async listOffers(req, res) {
         ) us ON o.user_id = us.business_id AND us.user_id = $${paramIndex}
         ${joinConditions.join(" ")}
         WHERE ${whereConditions.join(" AND ")}
-        GROUP BY o.id, u.id, ot.id, bc.id, mp.id, rev.avg_rating, rev.review_count, so.id, us.id
+        GROUP BY o.id, u.id, oc.id, osc.id, bsc.id, mp.id, rev.avg_rating, rev.review_count, so.id, us.id
         ORDER BY ${orderBy}
         LIMIT $${paramIndex + 1} OFFSET $${paramIndex + 2}
       `;
@@ -703,8 +714,8 @@ async listOffers(req, res) {
                     CASE WHEN o.user_id = $2 THEN TRUE ELSE FALSE END as is_owner
                 FROM tbl_offers o
                 JOIN tbl_users u ON o.user_id = u.id AND u.is_active = TRUE AND u.is_deleted = FALSE
-                LEFT JOIN tbl_offer_types ot ON o.offer_type_id = ot.id
-                LEFT JOIN tbl_business_categories bc ON o.business_category_id = bc.id
+                LEFT JOIN tbl_offer_subcategories ot ON o.offer_subcategory_id = ot.id
+                LEFT JOIN tbl_business_categories bc ON o.business_subcategory_id = bc.id
                 LEFT JOIN tbl_user_memberships um ON u.id = um.user_id AND um.is_active = TRUE
                 LEFT JOIN tbl_membership_plans mp ON um.plan_id = mp.id
                 LEFT JOIN tbl_reviews rev ON o.user_id = rev.business_id AND rev.is_active = TRUE AND rev.is_deleted = FALSE
@@ -757,8 +768,8 @@ async listOffers(req, res) {
                 FROM tbl_offers o
                 JOIN tbl_users u ON o.user_id = u.id AND u.is_active = TRUE AND u.is_deleted = FALSE
                 LEFT JOIN tbl_reviews rev ON o.user_id = rev.business_id AND rev.is_active = TRUE AND rev.is_deleted = FALSE
-                LEFT JOIN tbl_offer_types ot ON o.offer_type_id = ot.id
-                WHERE o.business_category_id = $1 AND o.user_id != $2 AND o.id != $3 
+                LEFT JOIN tbl_offer_subcategories ot ON o.offer_subcategory_id = ot.id
+                WHERE o.business_subcategory_id = $1 AND o.user_id != $2 AND o.id != $3 
                 AND o.is_active = TRUE AND o.is_deleted = FALSE AND o.end_date > CURRENT_TIMESTAMP
                 GROUP BY o.id, u.id, ot.id
                 ORDER BY RANDOM()
@@ -766,7 +777,7 @@ async listOffers(req, res) {
             `
 
       const recommendedResult = await pool.query(recommendedQuery, [
-        offer.business_category_id,
+        offer.business_subcategory_id,
         offer.user_id,
         offer_id,
       ])
@@ -1046,7 +1057,7 @@ async listOffers(req, res) {
                     ot.offer_category_name, ot.offer_subcategory_name,
                     COUNT(DISTINCT r.id) as redemption_count
                 FROM tbl_offers o
-                LEFT JOIN tbl_offer_types ot ON o.offer_type_id = ot.id
+                LEFT JOIN tbl_offer_subcategories ot ON o.offer_subcategory_id = osc.id
                 LEFT JOIN tbl_redemptions r ON o.id = r.offer_id AND r.is_active = TRUE AND r.is_deleted = FALSE
                 WHERE ${whereConditions.join(" AND ")}
                 GROUP BY o.id, ot.id
