@@ -77,7 +77,7 @@ router.post(
         then: Joi.required(),
         otherwise: Joi.optional()
       }).when('sort_by', {
-        is: 'distance',
+        is: 'near_by',
         then: Joi.required(),
         otherwise: Joi.optional()
       }),
@@ -86,7 +86,7 @@ router.post(
         then: Joi.required(),
         otherwise: Joi.optional()
       }).when('sort_by', {
-        is: 'distance',
+        is: 'near_by',
         then: Joi.required(),
         otherwise: Joi.optional()
       }),

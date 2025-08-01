@@ -383,8 +383,8 @@ const offer_model = {
         latitude,
         longitude,
         search_query,
-        min_rating,
-        max_rating,
+        rating_filter,
+        membership_type,
         redeem_method,
         redeem_methods = [],
         listed_in_rplus,
@@ -471,6 +471,12 @@ const offer_model = {
         paramIndex++;
       }
 
+      if (membership_type) {
+        whereConditions.push(`LOWER(mp.name) = LOWER($${paramIndex})`);
+        queryParams.push(membership_type);
+        paramIndex++;
+      }
+
       // Offer category filter (array support)
       if (finalOfferCategoryIds.length > 0) {
         whereConditions.push(`osc.offer_category_id = ANY($${paramIndex})`);
@@ -493,21 +499,12 @@ const offer_model = {
       }
 
       // Rating filter
-      if (min_rating || max_rating) {
-        joinConditions.push(
-          "LEFT JOIN (SELECT business_id, AVG(rating) as avg_rating FROM tbl_reviews WHERE is_active = TRUE AND is_deleted = FALSE GROUP BY business_id) r ON o.user_id = r.business_id"
-        );
-
-        if (min_rating) {
-          whereConditions.push(`COALESCE(r.avg_rating, 0) >= $${paramIndex}`);
-          queryParams.push(min_rating);
-          paramIndex++;
-        }
-        if (max_rating) {
-          whereConditions.push(`COALESCE(r.avg_rating, 0) <= $${paramIndex}`);
-          queryParams.push(max_rating);
-          paramIndex++;
-        }
+      if (rating_filter === 'top') {
+        whereConditions.push(`COALESCE(u.avg_rating, 0) BETWEEN 4.0 AND 5.0`);
+      } else if (rating_filter === 'moderate') {
+        whereConditions.push(`COALESCE(u.avg_rating, 0) BETWEEN 3.0 AND 3.9`);
+      } else if (rating_filter === 'low') {
+        whereConditions.push(`COALESCE(u.avg_rating, 0) BETWEEN 1.0 AND 2.9`);
       }
 
       // Redeem method filter
@@ -553,7 +550,7 @@ const offer_model = {
           }
           break;
         case "relevance":
-          if (isSearch) {
+          if (isSearch) {quantity_per_user
             orderBy = `
               CASE 
                 WHEN o.title ILIKE $1 THEN 1
@@ -568,7 +565,7 @@ const offer_model = {
           orderBy = "o.created_at DESC";
       }
 
-      // Build main query
+      // Build main queryquantity_per_user
       const mainQuery = `
         SELECT 
           o.id, o.title, o.subtitle, o.description, o.terms_of_use, o.available_branches,  o.image, o.total_price, o.old_price,
@@ -579,7 +576,7 @@ const offer_model = {
           oc.offer_category_name, osc.offer_subcategory_name,
           bsc.subcategory_name as business_subcategory,
           mp.has_verified_badge,
-          COALESCE(rev.avg_rating, 0) as avg_rating,
+          COALESCE(u.avg_rating, 0) as avg_rating,
           COALESCE(rev.review_count, 0) as review_count,
           CASE WHEN so.id IS NOT NULL THEN TRUE ELSE FALSE END as is_saved,
           CASE WHEN us.id IS NOT NULL THEN TRUE ELSE FALSE END as is_subscribed,
@@ -703,18 +700,18 @@ const offer_model = {
                 SELECT 
                     o.*,
                     u.id as business_id, u.username as business_name, u.profile_image as business_image,
-                    u.phone as business_phone, u.whatsapp_url, u.instagram_url, u.tiktok_url,
-                    ot.offer_category_name, ot.offer_subcategory_name,
+                    oc.offer_category_name, osc.offer_subcategory_name,
                     bc.category_name as business_category,
                     mp.has_verified_badge,
-                    COALESCE(AVG(rev.rating), 0) as avg_rating,
+                    COALESCE(u.avg_rating, 0) as avg_rating,
                     COUNT(DISTINCT rev.id) as review_count,
                     CASE WHEN so.id IS NOT NULL THEN TRUE ELSE FALSE END as is_saved,
                     CASE WHEN us.id IS NOT NULL THEN TRUE ELSE FALSE END as is_subscribed,
                     CASE WHEN o.user_id = $2 THEN TRUE ELSE FALSE END as is_owner
                 FROM tbl_offers o
                 JOIN tbl_users u ON o.user_id = u.id AND u.is_active = TRUE AND u.is_deleted = FALSE
-                LEFT JOIN tbl_offer_subcategories ot ON o.offer_subcategory_id = ot.id
+                LEFT JOIN tbl_offer_subcategories osc ON o.offer_subcategory_id = osc.id
+                LEFT JOIN tbl_offer_categories oc ON osc.offer_category_id = oc.id
                 LEFT JOIN tbl_business_categories bc ON o.business_subcategory_id = bc.id
                 LEFT JOIN tbl_user_memberships um ON u.id = um.user_id AND um.is_active = TRUE
                 LEFT JOIN tbl_membership_plans mp ON um.plan_id = mp.id
@@ -722,7 +719,7 @@ const offer_model = {
                 LEFT JOIN tbl_saved_offers so ON o.id = so.offer_id AND so.user_id = $2 AND so.is_active = TRUE AND so.is_deleted = FALSE
                 LEFT JOIN tbl_user_subscriptions us ON o.user_id = us.business_id AND us.user_id = $2 AND us.is_active = TRUE AND us.is_deleted = FALSE
                 WHERE o.id = $1 AND o.is_active = TRUE AND o.is_deleted = FALSE
-                GROUP BY o.id, u.id, ot.id, bc.id, mp.id, so.id, us.id
+                GROUP BY o.id, u.id, oc.id, osc.id, bc.id, mp.id, so.id, us.id
             `
 
       const offerResult = await pool.query(offerQuery, [offer_id, user_id])
@@ -763,15 +760,15 @@ const offer_model = {
                     o.id, o.title, o.subtitle, o.image, o.total_price, o.old_price,
                     o.quantity_available, o.is_redeemable_in_store, o.is_delivery_available,
                     u.username as business_name, u.profile_image as business_image,
-                    COALESCE(AVG(rev.rating), 0) as avg_rating,
-                    ot.offer_category_name
+                    u.avg_rating AS avg_rating,
+                    osc.offer_subcategory_name
                 FROM tbl_offers o
                 JOIN tbl_users u ON o.user_id = u.id AND u.is_active = TRUE AND u.is_deleted = FALSE
                 LEFT JOIN tbl_reviews rev ON o.user_id = rev.business_id AND rev.is_active = TRUE AND rev.is_deleted = FALSE
-                LEFT JOIN tbl_offer_subcategories ot ON o.offer_subcategory_id = ot.id
+                LEFT JOIN tbl_offer_subcategories osc ON o.offer_subcategory_id = osc.id
                 WHERE o.business_subcategory_id = $1 AND o.user_id != $2 AND o.id != $3 
                 AND o.is_active = TRUE AND o.is_deleted = FALSE AND o.end_date > CURRENT_TIMESTAMP
-                GROUP BY o.id, u.id, ot.id
+                GROUP BY o.id, u.id, osc.id
                 ORDER BY RANDOM()
                 LIMIT 5
             `
@@ -1054,13 +1051,14 @@ const offer_model = {
                     o.quantity_available, o.view_count, o.total_redemptions,
                     o.start_date, o.end_date, o.is_active, o.is_listed_in_rplus,
                     o.created_at,
-                    ot.offer_category_name, ot.offer_subcategory_name,
+                    oc.offer_category_name, osc.offer_subcategory_name,
                     COUNT(DISTINCT r.id) as redemption_count
                 FROM tbl_offers o
-                LEFT JOIN tbl_offer_subcategories ot ON o.offer_subcategory_id = osc.id
+                LEFT JOIN tbl_offer_subcategories osc ON o.offer_subcategory_id = osc.id
+                LEFT JOIN tbl_offer_categories oc ON osc.offer_category_id = oc.id
                 LEFT JOIN tbl_redemptions r ON o.id = r.offer_id AND r.is_active = TRUE AND r.is_deleted = FALSE
                 WHERE ${whereConditions.join(" AND ")}
-                GROUP BY o.id, ot.id
+                GROUP BY o.id, osc.id
                 ORDER BY o.created_at DESC
                 LIMIT $${paramIndex} OFFSET $${paramIndex + 1}
             `
