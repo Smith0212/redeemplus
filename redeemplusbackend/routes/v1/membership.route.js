@@ -4,11 +4,13 @@ const express = require("express")
 const Joi = require("joi")
 const router = express.Router()
 
-// Get all membership plans
-router.post("/getplans", checkApiKey, checkToken, membershipModel.getMembershipPlans)
+// // Get all membership plans
+// router.post("/getplans", checkApiKey, checkToken, membershipModel.getMembershipPlans)
 
-// Get current membership
-router.post("/getcurrentmembership", checkApiKey, checkToken, membershipModel.getCurrentMembership)
+// // Get current membership
+// router.post("/getcurrentmembership", checkApiKey, checkToken, membershipModel.getCurrentMembership)
+
+router.post("/getMembershipInfo", checkApiKey, checkToken, membershipModel.getMembershipInfo)
 
 // Purchase membership
 router.post(

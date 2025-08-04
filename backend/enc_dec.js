@@ -16,7 +16,7 @@ function decrypt(encrypted) {
 }
 
 // Example usage
-const original = "FLb5MYENEF71DbfZlmoxj7uVg3nepeGyrxobMDZrcVRhkiiWute1SuiPMtNJpKSvbvdbUjfn+PxPRVpJGWH8qFq4i56INmvlqiqGdNkU+q+xBwdkyEkYGRnXPPQPZ6SqUUB/8AHq4FLQ96NZoI1mPg==";
+const original = "FLb5MYENEF71DbfZlmoxjwgUwx75lHtr+Ynw/IDmthh7kT5gF8IlNbm58vnKr2MY"
 // const encrypted = encrypt(original);
 const decrypted = decrypt(original);
 

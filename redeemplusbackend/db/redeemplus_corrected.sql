@@ -93,6 +93,7 @@ CREATE TABLE tbl_membership_plans (
     price DECIMAL(10, 2) NOT NULL,
     duration_days INTEGER NOT NULL,
     offer_limit INTEGER,
+    redeemption_limit BIGINT,
     visibility_days INTEGER NOT NULL,
     has_free_listing_rplus BOOLEAN DEFAULT FALSE,
     has_verified_badge BOOLEAN DEFAULT FALSE,
@@ -132,7 +133,7 @@ CREATE TABLE tbl_user_memberships (
     payment_id BIGINT,
     start_date TIMESTAMP WITH TIME ZONE NOT NULL,
     end_date TIMESTAMP WITH TIME ZONE NOT NULL,
-    offers_used INTEGER DEFAULT 0,
+    offers_used INTEGER DEFAULT 0, -- posted offer count
     is_active BOOLEAN DEFAULT TRUE,
     is_deleted BOOLEAN DEFAULT FALSE,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
@@ -381,7 +382,7 @@ CREATE TABLE tbl_recently_viewed (
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (user_id) REFERENCES tbl_users(id) ON DELETE CASCADE,
     FOREIGN KEY (offer_id) REFERENCES tbl_offers(id) ON DELETE CASCADE,
-    -- UNIQUE(user_id, offer_id)
+    UNIQUE(user_id, offer_id)
 );
 
 -- User settings

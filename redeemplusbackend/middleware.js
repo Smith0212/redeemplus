@@ -18,7 +18,7 @@ const checkApiKey = function (req, res, next) {
     if (req.headers['api-key'] == process.env.API_KEY) {
         next();
     } else {
-        sendResponse(req, res, 401, '-1', { keyword: 'invalid_api_key', components: {} }, {});
+        sendResponse(req, res, 401, '0', { keyword: 'invalid_api_key', components: {} }, {});
     }
 }
 

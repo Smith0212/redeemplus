@@ -62,7 +62,7 @@ router.post(
     Joi.object({
       page: Joi.number().min(1).optional().default(1),
       limit: Joi.number().min(1).max(50).optional().default(10),
-      type: Joi.string().valid("all", "nearby", "subscribed").optional().default("all"),
+      type: Joi.string().valid("all", "nearby", "subscribed", "user").optional().default("all"),
       // Support both single value and array parameters
       offer_type: Joi.number().optional(), // For backward compatibility
       offer_type_ids: Joi.array().items(Joi.number()).optional(), // New array parameter
@@ -149,6 +149,13 @@ router.post(
         )
         .optional(),
       user_acknowledgment: Joi.boolean().valid(true).required(),
+      valid_days: Joi.string()
+        .length(7)
+        .pattern(/^[01]{7}$/)
+        .optional(),
+      quantity_available: Joi.number().min(1).optional(),
+      quantity_per_user: Joi.number().min(1).optional(),
+      is_delivery_available: Joi.boolean().optional(),
     }),
   ),
   offerModel.updateOffer,
@@ -181,18 +188,18 @@ router.post(
 )
 
 // Get my offers
-router.post(
-  "/getMyOffers",
-  checkApiKey,
-  checkToken,
-  validateJoi(
-    Joi.object({
-      page: Joi.number().min(1).optional(),
-      limit: Joi.number().min(1).max(50).optional(),
-      status: Joi.string().valid("active", "expired", "all").optional(),
-    }),
-  ),
-  offerModel.getMyOffers,
-)
+// router.post(
+//   "/getMyOffers",
+//   checkApiKey,
+//   checkToken,
+//   validateJoi(
+//     Joi.object({
+//       page: Joi.number().min(1).optional(),
+//       limit: Joi.number().min(1).max(50).optional(),
+//       status: Joi.string().valid("active", "expired", "all").optional(),
+//     }),
+//   ),
+//   offerModel.getMyOffers,
+// )
 
 module.exports = router
