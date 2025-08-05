@@ -56,7 +56,7 @@ const category_model = {
     }
   },
 
-  async getOfferTypes(req, res) {
+  async getOfferCategories(req, res) {
     try {
       // Fetch categories and their subcategories
       const offerCategoriesQuery = `
@@ -250,21 +250,58 @@ const category_model = {
 
       const searchQuery = `
         SELECT 
-          id, category_name, sub_category_name, created_at
-        FROM tbl_business_categories 
-        WHERE (category_name ILIKE $1 OR sub_category_name ILIKE $1)
-          AND is_active = TRUE AND is_deleted = FALSE
+          c.id AS category_id,
+          c.category_name,
+          c.created_at AS category_created_at,
+          c.updated_at AS category_updated_at,
+          sc.id AS subcategory_id,
+          sc.subcategory_name,
+          sc.created_at AS subcategory_created_at,
+          sc.updated_at AS subcategory_updated_at
+        FROM tbl_business_categories c
+        LEFT JOIN tbl_business_subcategories sc
+          ON c.id = sc.category_id
+          AND sc.is_active = TRUE AND sc.is_deleted = FALSE
+        WHERE (
+          c.category_name ILIKE $1 OR
+          sc.subcategory_name ILIKE $1
+        )
+        AND c.is_active = TRUE AND c.is_deleted = FALSE
         ORDER BY 
           CASE 
-            WHEN category_name ILIKE $1 THEN 1
-            WHEN sub_category_name ILIKE $1 THEN 2
+            WHEN c.category_name ILIKE $1 THEN 1
+            WHEN sc.subcategory_name ILIKE $1 THEN 2
             ELSE 3
           END,
-          category_name ASC, sub_category_name ASC
+          c.category_name ASC, sc.subcategory_name ASC
         LIMIT $2
       `
 
       const { rows } = await pool.query(searchQuery, [searchTerm, limit])
+
+      // Group by category
+      const groupedCategories = {}
+      rows.forEach((row) => {
+        if (!groupedCategories[row.category_name]) {
+          groupedCategories[row.category_name] = {
+            id: row.category_id,
+            category_name: row.category_name,
+            created_at: row.category_created_at,
+            updated_at: row.category_updated_at,
+            subcategories: [],
+          }
+        }
+        if (row.subcategory_id && row.subcategory_name) {
+          groupedCategories[row.category_name].subcategories.push({
+            id: row.subcategory_id,
+            subcategory_name: row.subcategory_name,
+            created_at: row.subcategory_created_at,
+            updated_at: row.subcategory_updated_at,
+          })
+        }
+      })
+
+      const results = Object.values(groupedCategories)
 
       return sendResponse(
         req,
@@ -274,7 +311,7 @@ const category_model = {
         { keyword: "success" },
         {
           query,
-          results: rows,
+          results,
         },
       )
     } catch (err) {

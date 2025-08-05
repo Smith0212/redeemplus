@@ -17,9 +17,9 @@ router.post(
   categoryModel.getBusinessCategories,
 )
 
-// Get offer types
+// Get offer categories
 router.post(
-  "/getOfferTypes",
+  "/getOfferCategories",
   checkApiKey,
   checkToken,
   validateJoi(
@@ -27,37 +27,37 @@ router.post(
       include_subcategories: Joi.boolean().optional(),
     }),
   ),
-  categoryModel.getOfferTypes,
+  categoryModel.getOfferCategories,
 )
 
 // Get category statistics
-router.post(
-  "/getcategorystats",
-  checkApiKey,
-  validateJoi(
-    Joi.object({
-      category_type: Joi.string().valid("business", "offer").optional(),
-    }),
-  ),
-  categoryModel.getCategoryStats,
-)
+// router.post(
+//   "/getcategorystats",
+//   checkApiKey,
+//   validateJoi(
+//     Joi.object({
+//       category_type: Joi.string().valid("business", "offer").optional(),
+//     }),
+//   ),
+//   categoryModel.getCategoryStats,
+// )
 
 // Get popular categories
-router.post(
-  "/getpopularcategories",
-  checkApiKey,
-  validateJoi(
-    Joi.object({
-      limit: Joi.number().min(1).max(50).optional(),
-      category_type: Joi.string().valid("business", "offer").optional(),
-    }),
-  ),
-  categoryModel.getPopularCategories,
-)
+// router.post(
+//   "/getpopularcategories",
+//   checkApiKey,
+//   validateJoi(
+//     Joi.object({
+//       limit: Joi.number().min(1).max(50).optional(),
+//       category_type: Joi.string().valid("business", "offer").optional(),
+//     }),
+//   ),
+//   categoryModel.getPopularCategories,
+// )
 
 // Search categories
 router.post(
-  "/searchcategories",
+  "/searchCategories",
   checkApiKey,
   validateJoi(
     Joi.object({
@@ -70,16 +70,16 @@ router.post(
 )
 
 // Get category details
-router.post(
-  "/getcategorydetails",
-  checkApiKey,
-  validateJoi(
-    Joi.object({
-      category_id: Joi.number().required(),
-      category_type: Joi.string().valid("business", "offer").optional(),
-    }),
-  ),
-  categoryModel.getCategoryDetails,
-)
+// router.post(
+//   "/getcategorydetails",
+//   checkApiKey,
+//   validateJoi(
+//     Joi.object({
+//       category_id: Joi.number().required(),
+//       category_type: Joi.string().valid("business", "offer").optional(),
+//     }),
+//   ),
+//   categoryModel.getCategoryDetails,
+// )
 
 module.exports = router

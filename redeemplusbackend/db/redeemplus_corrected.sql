@@ -107,7 +107,6 @@ CREATE TABLE tbl_membership_plans (
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
 
--- Payments (corrected enums)
 CREATE TABLE tbl_payments (
     id BIGSERIAL PRIMARY KEY,
     user_id BIGINT NOT NULL,
@@ -192,6 +191,7 @@ CREATE TABLE tbl_offers (
     discount_percentage DECIMAL(5, 2),
     total_price DECIMAL(10, 2) NOT NULL CHECK (total_price > 0),
     old_price DECIMAL(10, 2),
+    currency VARCHAR(3) DEFAULT 'QAR',
     duration INTEGER NOT NULL,
     quantity_available INTEGER NOT NULL,
     quantity_per_user INTEGER DEFAULT 1,

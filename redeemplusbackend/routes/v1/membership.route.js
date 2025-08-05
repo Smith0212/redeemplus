@@ -10,11 +10,17 @@ const router = express.Router()
 // // Get current membership
 // router.post("/getcurrentmembership", checkApiKey, checkToken, membershipModel.getCurrentMembership)
 
-router.post("/getMembershipInfo", checkApiKey, checkToken, membershipModel.getMembershipInfo)
+router.post("/getMembershipInfo", checkApiKey, checkToken,
+  validateJoi(
+    Joi.object({
+      type: Joi.string().valid("plan", "current").required(),
+    }),
+  ), 
+  membershipModel.getMembershipInfo)
 
 // Purchase membership
 router.post(
-  "/purchasemembership",
+  "/purchaseMembership",
   checkApiKey,
   checkToken,
   validateJoi(
@@ -29,7 +35,7 @@ router.post(
 
 // Get membership history
 router.post(
-  "/gethistory",
+  "/getHistory",
   checkApiKey,
   checkToken,
   validateJoi(

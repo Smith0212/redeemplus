@@ -132,7 +132,7 @@ const membership_model = {
       const { type } = req.body;
       const user_id = req.user.id;
 
-      if (type === "plans") {
+      if (type === "plan") {
         const plansQuery = `
         SELECT 
           id, name, price, duration_days, offer_limit, visibility_days,
@@ -147,25 +147,26 @@ const membership_model = {
 
         const plans = rows.map((plan) => ({
           ...plan,
-          features: {
-            offers_per_year: plan.offer_limit || "Unlimited",
-            offer_visibility_days: plan.visibility_days,
-            free_listing_rplus: plan.has_free_listing_rplus,
-            verified_badge: plan.has_verified_badge,
-            priority_support: plan.has_priority_support,
-            exclusive_promo_access: plan.has_exclusive_promo_access,
-            unlimited_offers: plan.has_unlimited_offers,
-            auto_renewal: plan.is_auto_renewal,
-          },
+          // features: {
+          //   offers_per_year: plan.offer_limit || "Unlimited",
+          //   offer_visibility_days: plan.visibility_days,
+          //   free_listing_rplus: plan.has_free_listing_rplus,
+          //   verified_badge: plan.has_verified_badge,
+          //   priority_support: plan.has_priority_support,
+          //   exclusive_promo_access: plan.has_exclusive_promo_access,
+          //   unlimited_offers: plan.has_unlimited_offers,
+          //   auto_renewal: plan.is_auto_renewal,
+          // },
         }));
 
         return sendResponse(req, res, 200, responseCode.SUCCESS, { keyword: "success" }, { plans });
       }
 
       if (type === "current") {
+
         const membershipQuery = `
         SELECT 
-          um.id, um.start_date, um.end_date, um.offers_used, um.redeemption_used,
+          um.id, um.start_date, um.end_date, um.offers_used,
           mp.id as plan_id, mp.name, mp.price, mp.offer_limit, mp.visibility_days,
           mp.has_free_listing_rplus, mp.has_verified_badge, mp.has_priority_support,
           mp.has_exclusive_promo_access, mp.has_unlimited_offers, mp.is_auto_renewal,
@@ -179,7 +180,7 @@ const membership_model = {
         WHERE um.user_id = $1 AND um.is_active = TRUE AND um.is_deleted = FALSE
         ORDER BY um.created_at DESC
         LIMIT 1
-      `;
+            `;
 
         const { rows } = await pool.query(membershipQuery, [user_id]);
 
@@ -191,6 +192,7 @@ const membership_model = {
           );
 
           const defaultPlan = defaultPlanResult.rows[0];
+          console.log('11111111111')
 
           return sendResponse(req, res, 200, responseCode.SUCCESS, { keyword: "success" }, {
             membership: {
@@ -202,28 +204,37 @@ const membership_model = {
               days_remaining: defaultPlan.duration_days || 0,
               start_date: null,
               end_date: null,
-              features: {
-                offers_per_year: defaultPlan.offer_limit || "Unlimited",
-                offer_visibility_days: defaultPlan.visibility_days,
-                free_listing_rplus: defaultPlan.has_free_listing_rplus,
-                verified_badge: defaultPlan.has_verified_badge,
-                priority_support: defaultPlan.has_priority_support,
-                exclusive_promo_access: defaultPlan.has_exclusive_promo_access,
-                unlimited_offers: defaultPlan.has_unlimited_offers,
-                auto_renewal: defaultPlan.is_auto_renewal,
-              },
+              // features: {
+              //   offers_per_year: defaultPlan.offer_limit || "Unlimited",
+              //   offer_visibility_days: defaultPlan.visibility_days,
+              //   free_listing_rplus: defaultPlan.has_free_listing_rplus,
+              //   verified_badge: defaultPlan.has_verified_badge,
+              //   priority_support: defaultPlan.has_priority_support,
+              //   exclusive_promo_access: defaultPlan.has_exclusive_promo_access,
+              //   unlimited_offers: defaultPlan.has_unlimited_offers,
+              //   auto_renewal: defaultPlan.is_auto_renewal,
+              // },
             },
           });
         }
 
         const membership = rows[0];
 
-        const remaining_offers = membership.offer_limit
-          ? Math.max(0, membership.offer_limit - membership.offers_used)
-          : "Unlimited";
+        // Calculate redeemption_used for the current user
+        const redeemptionUsedQuery = `
+          SELECT COUNT(*) AS redeemption_used
+          FROM tbl_redemptions
+          WHERE user_id = $1 AND is_active = TRUE AND is_deleted = FALSE
+        `;
+        const redeemptionUsedResult = await pool.query(redeemptionUsedQuery, [user_id]);
+        const redeemption_used = parseInt(redeemptionUsedResult.rows[0].redeemption_used);
 
         const remaining_redeemption = membership.redeemption_limit
-          ? Math.max(0, membership.redeemption_limit - (membership.redeemption_used || 0))
+          ? Math.max(0, membership.redeemption_limit - (redeemption_used || 0))
+          : "Unlimited";
+
+        const remaining_offers = membership.offer_limit
+          ? Math.max(0, membership.offer_limit - membership.offers_used)
           : "Unlimited";
 
         const days_remaining = membership.is_active
@@ -235,16 +246,16 @@ const membership_model = {
           remaining_offers,
           remaining_redeemption,
           days_remaining,
-          features: {
-            offers_per_year: membership.offer_limit || "Unlimited",
-            offer_visibility_days: membership.visibility_days,
-            free_listing_rplus: membership.has_free_listing_rplus,
-            verified_badge: membership.has_verified_badge,
-            priority_support: membership.has_priority_support,
-            exclusive_promo_access: membership.has_exclusive_promo_access,
-            unlimited_offers: membership.has_unlimited_offers,
-            auto_renewal: membership.is_auto_renewal,
-          },
+          // features: {
+          //   offers_per_year: membership.offer_limit || "Unlimited",
+          //   offer_visibility_days: membership.visibility_days,
+          //   free_listing_rplus: membership.has_free_listing_rplus,
+          //   verified_badge: membership.has_verified_badge,
+          //   priority_support: membership.has_priority_support,
+          //   exclusive_promo_access: membership.has_exclusive_promo_access,
+          //   unlimited_offers: membership.has_unlimited_offers,
+          //   auto_renewal: membership.is_auto_renewal,
+          // },
         };
 
         return sendResponse(req, res, 200, responseCode.SUCCESS, { keyword: "success" }, { membership: response });
@@ -408,18 +419,18 @@ const membership_model = {
                 LIMIT $2 OFFSET $3
             `
 
-      const countQuery = `
-                SELECT COUNT(*) as total FROM tbl_user_memberships um
-                WHERE um.user_id = $1 AND um.is_deleted = FALSE
-            `
+      // const countQuery = `
+      //           SELECT COUNT(*) as total FROM tbl_user_memberships um
+      //           WHERE um.user_id = $1 AND um.is_deleted = FALSE
+      //       `
 
       const [historyResult, countResult] = await Promise.all([
         pool.query(historyQuery, [user_id, limit, offset]),
-        pool.query(countQuery, [user_id]),
+        // pool.query(countQuery, [user_id]),
       ])
 
       const history = historyResult.rows
-      const total = Number.parseInt(countResult.rows[0].total)
+      // const total = Number.parseInt(countResult.rows[0].total)
 
       return sendResponse(
         req,
@@ -429,13 +440,13 @@ const membership_model = {
         { keyword: "success" },
         {
           history,
-          pagination: {
-            current_page: page,
-            total_pages: Math.ceil(total / limit),
-            total_records: total,
-            has_next: page < Math.ceil(total / limit),
-            has_prev: page > 1,
-          },
+          // pagination: {
+          //   current_page: page,
+          //   total_pages: Math.ceil(total / limit),
+          //   total_records: total,
+          //   has_next: page < Math.ceil(total / limit),
+          //   has_prev: page > 1,
+          // },
         },
       )
     } catch (err) {
