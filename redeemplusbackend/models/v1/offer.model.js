@@ -31,11 +31,14 @@ const offer_model = {
         available_branches,
         valid_times = [], // Array of {start_time, end_time}
         user_acknowledgment,
+        offer_type // Added offer_type to check against allowed types
       } = req.body
 
       // Check user's membership and offer limits
       const membershipQuery = `
-                SELECT mp.offer_limit, mp.visibility_days, um.offers_used, um.end_date
+                SELECT mp.offer_limit, mp.visibility_days, mp.allowed_offer_types, 
+                       mp.offer_quantity_limit, mp.limit_per_user, mp.can_update_currency,
+                       mp.edit_access, um.offers_used, um.end_date
                 FROM tbl_user_memberships um
                 JOIN tbl_membership_plans mp ON um.plan_id = mp.id
                 WHERE um.user_id = $1 AND um.is_active = TRUE AND um.end_date > CURRENT_TIMESTAMP
@@ -51,8 +54,34 @@ const offer_model = {
       const membership = membershipResult.rows[0]
 
       // Check offer limit (null means unlimited for Gold)
-      if (membership.offer_limit && membership.offers_used >= membership.offer_limit) {
+      if (membership.offer_limit !== null && membership.offers_used >= membership.offer_limit) {
         return sendResponse(req, res, 200, responseCode.OPERATION_FAILED, { keyword: "offer_limit_exceeded" }, {})
+      }
+
+      // Check offer type is allowed for this membership
+      if (membership.allowed_offer_types && !membership.allowed_offer_types.includes(offer_type)) {
+        return sendResponse(req, res, 200, responseCode.OPERATION_FAILED, { keyword: "offer_type_not_allowed" }, {})
+      }
+
+      // Check offer duration doesn't exceed plan's visibility_days
+      if (duration > membership.visibility_days) {
+        return sendResponse(req, res, 200, responseCode.OPERATION_FAILED, { keyword: "duration_exceeds_limit" }, {
+          max_allowed_duration: membership.visibility_days
+        })
+      }
+
+      // Check quantity_available doesn't exceed plan's offer_quantity_limit
+      if (membership.offer_quantity_limit && quantity_available > membership.offer_quantity_limit) {
+        return sendResponse(req, res, 200, responseCode.OPERATION_FAILED, { keyword: "quantity_exceeds_limit" }, {
+          max_allowed_quantity: membership.offer_quantity_limit
+        })
+      }
+
+      // Check quantity_per_user doesn't exceed plan's limit_per_user
+      if (membership.limit_per_user && quantity_per_user > membership.limit_per_user) {
+        return sendResponse(req, res, 200, responseCode.OPERATION_FAILED, { keyword: "user_limit_exceeds" }, {
+          max_per_user: membership.limit_per_user
+        })
       }
 
       // Validate required fields
@@ -813,13 +842,12 @@ const offer_model = {
       const user_id = req.user.id
       const {
         offer_id,
+        // Fields that can be updated with limited access
         image,
-        title,
-        subtitle,
         description,
         terms_of_use,
+        discount_percentage,
         pin_code,
-        delivery_fee,
         estimated_delivery_time,
         available_branches,
         valid_times = [],
@@ -827,7 +855,21 @@ const offer_model = {
         valid_days,
         quantity_available,
         quantity_per_user,
-        is_delivery_available, // <-- added field
+        // Fields that require full access
+        offer_subcategory_id,
+        business_subcategory_id,
+        title,
+        subtitle,
+        total_price,
+        old_price,
+        currency,
+        duration,
+        is_redeemable_in_store,
+        is_delivery_available,
+        delivery_fee,
+        offer_latitude,
+        offer_longitude,
+        end_date
       } = req.body
 
       if (!offer_id) {
@@ -839,12 +881,58 @@ const offer_model = {
       }
 
       // Check if user owns the offer
-      const ownershipQuery =
-        "SELECT id FROM tbl_offers WHERE id = $1 AND user_id = $2 AND is_active = TRUE AND is_deleted = FALSE"
+      const ownershipQuery = `
+        SELECT id, currency, end_date 
+        FROM tbl_offers 
+        WHERE id = $1 AND user_id = $2 AND is_active = TRUE AND is_deleted = FALSE
+      `
       const ownershipResult = await pool.query(ownershipQuery, [offer_id, user_id])
 
       if (ownershipResult.rows.length === 0) {
         return sendResponse(req, res, 403, responseCode.OPERATION_FAILED, { keyword: "permission_denied" }, {})
+      }
+
+      const currentOffer = ownershipResult.rows[0]
+
+      // Check user's membership for update permissions
+      const membershipQuery = `
+        SELECT mp.can_update_currency, mp.edit_access
+        FROM tbl_user_memberships um
+        JOIN tbl_membership_plans mp ON um.plan_id = mp.id
+        WHERE um.user_id = $1 AND um.is_active = TRUE AND um.end_date > CURRENT_TIMESTAMP
+        ORDER BY um.created_at DESC LIMIT 1
+      `
+      const membershipResult = await pool.query(membershipQuery, [user_id])
+      const membership = membershipResult.rows[0] || {}
+
+      const hasFullEditAccess = membership.edit_access === 'full'
+      // console.log("hasFullEditAccess:", hasFullEditAccess, "membership.edit_access:", membership.edit_access)
+      // Check if currency update is allowed
+      if (currency && currency !== currentOffer.currency && !membership.can_update_currency) {
+        return sendResponse(req, res, 403, responseCode.OPERATION_FAILED, { keyword: "currency_update_not_allowed" }, {})
+      }
+
+      // Check if trying to update restricted fields without full access
+      const restrictedFields = [
+        offer_subcategory_id !== undefined && !hasFullEditAccess ? 'offer_subcategory_id' : null,
+        business_subcategory_id !== undefined && !hasFullEditAccess ? 'business_subcategory_id' : null,
+        title !== undefined && !hasFullEditAccess ? 'title' : null,
+        subtitle !== undefined && !hasFullEditAccess ? 'subtitle' : null,
+        total_price !== undefined && !hasFullEditAccess ? 'total_price' : null,
+        old_price !== undefined && !hasFullEditAccess ? 'old_price' : null,
+        duration !== undefined && !hasFullEditAccess ? 'duration' : null,
+        is_redeemable_in_store !== undefined && !hasFullEditAccess ? 'is_redeemable_in_store' : null,
+        is_delivery_available !== undefined && !hasFullEditAccess ? 'is_delivery_available' : null,
+        delivery_fee !== undefined && !hasFullEditAccess ? 'delivery_fee' : null,
+        offer_latitude !== undefined && !hasFullEditAccess ? 'offer_latitude' : null,
+        offer_longitude !== undefined && !hasFullEditAccess ? 'offer_longitude' : null,
+        end_date !== undefined && !hasFullEditAccess ? 'end_date' : null
+      ].filter(Boolean)
+
+      if (restrictedFields.length > 0) {
+        return sendResponse(req, res, 403, responseCode.OPERATION_FAILED, { 
+          keyword: "field_update_not_allowed"
+        }, {"restrictedFields": restrictedFields})
       }
 
       const client = await pool.connect()
@@ -852,25 +940,44 @@ const offer_model = {
       try {
         await client.query("BEGIN")
 
-        // Build dynamic update query for allowed fields only
+        // Build dynamic update query
         const fields = []
         const values = []
         let idx = 1
 
+        // Always allowed fields (limited access)
         const updateFields = {
           image,
-          title,
-          subtitle,
           description,
           terms_of_use,
+          discount_percentage,
           pin_code,
-          delivery_fee,
           estimated_delivery_time,
           available_branches,
+          user_acknowledgment,
           valid_days,
           quantity_available,
-          quantity_per_user,
-          is_delivery_available, // <-- added field
+          quantity_per_user
+        }
+
+        // Fields that require full access
+        if (hasFullEditAccess) {
+          Object.assign(updateFields, {
+            offer_subcategory_id,
+            business_subcategory_id,
+            title,
+            subtitle,
+            total_price,
+            old_price,
+            currency,
+            duration,
+            is_redeemable_in_store,
+            is_delivery_available,
+            delivery_fee,
+            offer_latitude,
+            offer_longitude,
+            end_date
+          })
         }
 
         for (const [key, value] of Object.entries(updateFields)) {
@@ -885,11 +992,11 @@ const offer_model = {
           values.push(offer_id)
 
           const updateQuery = `
-                        UPDATE tbl_offers 
-                        SET ${fields.join(", ")}
-                        WHERE id = $${idx}
-                        RETURNING id
-                    `
+            UPDATE tbl_offers 
+            SET ${fields.join(", ")}
+            WHERE id = $${idx}
+            RETURNING id
+          `
 
           await client.query(updateQuery, values)
         }
@@ -922,6 +1029,152 @@ const offer_model = {
       return sendResponse(req, res, 500, responseCode.OPERATION_FAILED, { keyword: "failed" }, err.message)
     }
   },
+
+  // async updateOffer(req, res) {
+  //   try {
+  //     const user_id = req.user.id
+  //     const {
+  //       offer_id,
+  //       image,
+  //       // title,
+  //       // subtitle,
+  //       description,
+  //       terms_of_use,
+  //       pin_code,
+  //       // delivery_fee,
+  //       estimated_delivery_time,
+  //       available_branches,
+  //       valid_times = [],
+  //       user_acknowledgment,
+  //       valid_days,
+  //       quantity_available,
+  //       quantity_per_user,
+  //       // is_delivery_available,
+  //       // currency 
+  //     } = req.body
+
+  //     if (!offer_id) {
+  //       return sendResponse(req, res, 400, responseCode.OPERATION_FAILED, { keyword: "missing_offer_id" }, {})
+  //     }
+
+  //     if (!user_acknowledgment) {
+  //       return sendResponse(req, res, 400, responseCode.OPERATION_FAILED, { keyword: "acknowledgment_required" }, {})
+  //     }
+
+  //     // Check if user owns the offer
+  //     const ownershipQuery =
+  //       "SELECT id, currency FROM tbl_offers WHERE id = $1 AND user_id = $2 AND is_active = TRUE AND is_deleted = FALSE"
+  //     const ownershipResult = await pool.query(ownershipQuery, [offer_id, user_id])
+
+  //     if (ownershipResult.rows.length === 0) {
+  //       return sendResponse(req, res, 403, responseCode.OPERATION_FAILED, { keyword: "permission_denied" }, {})
+  //     }
+
+  //     const currentOffer = ownershipResult.rows[0]
+
+  //     // Check user's membership for update permissions
+  //     const membershipQuery = `
+  //               SELECT mp.can_update_currency, mp.edit_access
+  //               FROM tbl_user_memberships um
+  //               JOIN tbl_membership_plans mp ON um.plan_id = mp.id
+  //               WHERE um.user_id = $1 AND um.is_active = TRUE AND um.end_date > CURRENT_TIMESTAMP
+  //               ORDER BY um.created_at DESC LIMIT 1
+  //           `
+
+  //     const membershipResult = await pool.query(membershipQuery, [user_id])
+  //     const membership = membershipResult.rows[0] || {}
+
+  //     // Check if currency update is allowed
+  //     if (currency && currency !== currentOffer.currency && !membership.can_update_currency) {
+  //       return sendResponse(req, res, 403, responseCode.OPERATION_FAILED, { keyword: "currency_update_not_allowed" }, {})
+  //     }
+
+  //     const client = await pool.connect()
+
+  //     try {
+  //       await client.query("BEGIN")
+
+  //       // Build dynamic update query for allowed fields only
+  //       const fields = []
+  //       const values = []
+  //       let idx = 1
+
+  //       // Determine which fields can be updated based on membership
+  //       const updateFields = {
+  //         image,
+  //         title,
+  //         subtitle,
+  //         description,
+  //         terms_of_use,
+  //         pin_code,
+  //         delivery_fee,
+  //         estimated_delivery_time,
+  //         available_branches,
+  //         user_acknowledgment,
+  //         is_delivery_available
+  //       }
+
+  //       // These fields can only be updated if membership has full edit access
+  //       if (membership.edit_access === 'full') {
+  //         updateFields.valid_days = valid_days
+  //         updateFields.quantity_available = quantity_available
+  //         updateFields.quantity_per_user = quantity_per_user
+  //       }
+
+  //       // Currency can be updated if allowed by membership
+  //       if (currency && membership.can_update_currency) {
+  //         updateFields.currency = currency
+  //       }
+
+  //       for (const [key, value] of Object.entries(updateFields)) {
+  //         if (value !== undefined) {
+  //           fields.push(`${key} = $${idx++}`)
+  //           values.push(value)
+  //         }
+  //       }
+
+  //       if (fields.length > 0) {
+  //         fields.push(`updated_at = CURRENT_TIMESTAMP`)
+  //         values.push(offer_id)
+
+  //         const updateQuery = `
+  //                       UPDATE tbl_offers 
+  //                       SET ${fields.join(", ")}
+  //                       WHERE id = $${idx}
+  //                       RETURNING id
+  //                   `
+
+  //         await client.query(updateQuery, values)
+  //       }
+
+  //       // Update valid times if provided
+  //       if (valid_times && valid_times.length > 0) {
+  //         // Delete existing times
+  //         await client.query("DELETE FROM tbl_offer_valid_times WHERE offer_id = $1", [offer_id])
+
+  //         // Insert new times
+  //         for (const time of valid_times) {
+  //           await client.query(
+  //             "INSERT INTO tbl_offer_valid_times (offer_id, valid_time_start, valid_time_end) VALUES ($1, $2, $3)",
+  //             [offer_id, time.start_time, time.end_time],
+  //           )
+  //         }
+  //       }
+
+  //       await client.query("COMMIT")
+
+  //       return sendResponse(req, res, 200, responseCode.SUCCESS, { keyword: "offer_updated" }, { offer_id })
+  //     } catch (err) {
+  //       await client.query("ROLLBACK")
+  //       throw err
+  //     } finally {
+  //       client.release()
+  //     }
+  //   } catch (err) {
+  //     console.error("Update Offer Error:", err)
+  //     return sendResponse(req, res, 500, responseCode.OPERATION_FAILED, { keyword: "failed" }, err.message)
+  //   }
+  // },
 
   async deleteOffer(req, res) {
     try {

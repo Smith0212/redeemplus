@@ -91,10 +91,38 @@ CREATE TABLE tbl_membership_plans (
     id BIGSERIAL PRIMARY KEY,
     name VARCHAR(50) NOT NULL,
     price DECIMAL(10, 2) NOT NULL,
-    duration_days INTEGER NOT NULL,
+    duration_days INTEGER NOT NULL, -- validity of the plan in days
     offer_limit INTEGER,
     redeemption_limit BIGINT,
     visibility_days INTEGER NOT NULL,
+    has_free_listing_rplus BOOLEAN DEFAULT FALSE,
+    has_verified_badge BOOLEAN DEFAULT FALSE,
+    has_priority_support BOOLEAN DEFAULT FALSE,
+    has_exclusive_promo_access BOOLEAN DEFAULT FALSE,
+    has_unlimited_offers BOOLEAN DEFAULT FALSE,
+    is_auto_renewal BOOLEAN DEFAULT TRUE,
+    is_active BOOLEAN DEFAULT TRUE,
+    is_deleted BOOLEAN DEFAULT FALSE,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE tbl_membership_plans (
+    id BIGSERIAL PRIMARY KEY,
+    name VARCHAR(50) NOT NULL,
+    price DECIMAL(10, 2) NOT NULL,
+    duration_days INTEGER NOT NULL, -- validity of the plan in days
+    offer_limit INTEGER, -- total number of offers allowed to posted in plan
+    offer_quantity_limit INTEGER, -- max quantity per offer
+    limit_per_user INTEGER, -- max redemption per user
+
+    redemption_limit INTEGER, -- renamed from 'redeemption_limit' (corrected typo)
+    visibility_days INTEGER NOT NULL, -- max offer duration per post
+
+    can_update_currency BOOLEAN DEFAULT FALSE, -- currency update allowed?
+    edit_access VARCHAR(20) DEFAULT 'limited', -- 'limited' or 'full'
+    allowed_offer_types TEXT[], -- allowed offer types (nullable = all types allowed)
+
     has_free_listing_rplus BOOLEAN DEFAULT FALSE,
     has_verified_badge BOOLEAN DEFAULT FALSE,
     has_priority_support BOOLEAN DEFAULT FALSE,
@@ -260,8 +288,8 @@ CREATE TABLE tbl_redemptions (
     redemption_method VARCHAR(20) CHECK (redemption_method IN ('pin_code', 'delivery')) NOT NULL,
     pin_code VARCHAR(10),
     -- confirmation_number VARCHAR(20) UNIQUE,
-    -- quantity INTEGER DEFAULT 1,
-    -- total_amount DECIMAL(10, 2),
+    quantity INTEGER DEFAULT 1,
+    total_amount DECIMAL(10, 2),
     is_active BOOLEAN DEFAULT TRUE,
     is_deleted BOOLEAN DEFAULT FALSE,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
@@ -416,7 +444,8 @@ CREATE TABLE tbl_ads (
     -- description TEXT,
     image_url TEXT,
     target_url TEXT,
-    is_active BOOLEAN DEFAULT TRUE,
+    is_activeve BOOLEAN DEFAULT TRUE,
+    is_dele BOOLEAN DEFAULT TRUE,
     is_deleted BOOLEAN DEFAULT FALSE,
     start_date TIMESTAMP WITH TIME ZONE NOT NULL,
     end_date TIMESTAMP WITH TIME ZONE NOT NULL,
@@ -437,7 +466,8 @@ CREATE TABLE tbl_reports (
     status VARCHAR(20) CHECK (status IN ('pending', 'reviewed', 'resolved', 'dismissed')) DEFAULT 'pending',
     admin_notes TEXT,
     resolved_at TIMESTAMP WITH TIME ZONE,
-    is_active BOOLEAN DEFAULT TRUE,
+    is_activeve BOOLEAN DEFAULT TRUE,
+    is_dele BOOLEAN DEFAULT TRUE,
     is_deleted BOOLEAN DEFAULT FALSE,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
@@ -463,13 +493,40 @@ CREATE TABLE tbl_report_voice_notes (
     id BIGSERIAL PRIMARY KEY,
     report_id BIGINT NOT NULL,
     audio_url TEXT NOT NULL,
-    duration_seconds SMALLINT CHECK (duration_seconds <= 60),
+    duration_ve BOOLEAN DEFAULT TRUE,
+    is_deleseconds SMALLINT CHECK (duration_seconds <= 60),
     uploaded_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (report_id) REFERENCES tbl_reports(id) ON DELETE CASCADE
 );
 
 -- Static pages
-CREATE TABLE tbl_static_pages (
+CREATE TABLCREATE TABLE tbl_membership_plans (
+    id BIGSERIAL PRIMARY KEY,
+    name VARCHAR(50) NOT NULL,
+    price DECIMAL(10, 2) NOT NULL,
+    duration_days INTEGER NOT NULL, -- validity of the plan in days
+    offer_limit INTEGER, -- total number of offers allowed to posted in plan
+    offer_quantity_limit INTEGER, -- max quantity per offer
+    limit_per_user INTEGER, -- max redemption per user
+
+    redemption_limit INTEGER, -- renamed from 'redeemption_limit' (corrected typo)
+    visibility_days INTEGER NOT NULL, -- max offer duration per post
+
+    can_update_currency BOOLEAN DEFAULT FALSE, -- currency update allowed?
+    edit_access VARCHAR(20) DEFAULT 'limited', -- 'limited' or 'full'
+    allowed_offer_types TEXT[], -- allowed offer types (nullable = all types allowed)
+
+    has_free_listing_rplus BOOLEAN DEFAULT FALSE,
+    has_verified_badge BOOLEAN DEFAULT FALSE,
+    has_priority_support BOOLEAN DEFAULT FALSE,
+    has_exclusive_promo_access BOOLEAN DEFAULT FALSE,
+    has_unlimited_offers BOOLEAN DEFAULT FALSE,
+    is_auto_renewal BOOLEAN DEFAULT TRUE,
+    is_active BOOLEAN DEFAULT TRUE,
+    is_deleted BOOLEAN DEFAULT FALSE,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);E tbl_static_pages (
     id BIGSERIAL PRIMARY KEY,
     page_key VARCHAR(50) UNIQUE NOT NULL,
     title VARCHAR(255) NOT NULL,

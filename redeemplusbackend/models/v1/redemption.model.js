@@ -58,7 +58,7 @@ const redemption_model = {
       const userRedemptionResult = await pool.query(userRedemptionQuery, [offer_id, user_id])
       const totalRedeemed = Number.parseInt(userRedemptionResult.rows[0].total_redeemed)
 
-      if (totalRedeemed + quantity > (offer.max_per_user || offer.quantity_per_user)) {
+      if (totalRedeemed + quantity > (offer.quantity_per_user)) {
         return sendResponse(req, res, 200, responseCode.OPERATION_FAILED, { keyword: "redemption_limit_exceeded" }, {})
       }
 
