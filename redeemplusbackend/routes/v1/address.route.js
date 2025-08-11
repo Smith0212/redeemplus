@@ -6,7 +6,7 @@ const router = express.Router()
 
 // Add address
 router.post(
-  "/addaddress",
+  "/addAddress",
   checkApiKey,
   checkToken,
   validateJoi(
@@ -26,11 +26,11 @@ router.post(
 )
 
 // Get addresses
-router.post("/getaddresses", checkApiKey, checkToken, addressModel.getAddresses)
+router.post("/getAddresses", checkApiKey, checkToken, addressModel.getAddresses)
 
 // Update address
 router.post(
-  "/updateaddress",
+  "/updateAddress",
   checkApiKey,
   checkToken,
   validateJoi(

@@ -986,3 +986,135 @@ router.post(
   ),
   wishlistModel.checkWishlistStatus,
 )
+
+
+
+
+
+
+
+// now we have to generate end to end admin panel reactjs frontend for this project. and it must work robustly and efficiently.
+// folder strucure for react frontend should be according to the attached image, and if require you can use redux store for state management in reactjs 
+// changes in current backend code:
+// in whole project timings should be in UTC format, in both android and ios we have to implement an in-app purchase (IAP) for membership plans and payment gateway integration for 5$ payment to list our offer in redeem plus store, but which payment gateway we should use is not decided yet, once it will be decided then i will tell you that and then we can implement it.
+// i have added example code for in app purchase, so implement in app purchase for my application in both android and ios, and if require you can do changes in database schema, but the in-app-purchase should work properly.
+// in all-in-one offer listing api if is_rplus_offer is true then first show all that offer and then show other offers listed in redeem plus store.
+
+
+now we have to generate end to end admin panel frontend in reactjs (javascript) for this project. and it must work robustly and efficiently.
+if require you can use redux store for state management in reactjs and you can add or remove the folders in according to the requirement of reactjs.
+create files like apiHandler.js and apiClient.js to hit apis using that.
+also give me list of apis that are need to be created for admin backend.
+changes in current backend code:
+in whole project timings should be in UTC format, in both android and ios we have to implement an in-app purchase (IAP) for membership plans and payment gateway integration for 5$ payment to list our offer in redeem plus store, but which payment gateway we should use is not decided yet, once it will be decided then i will tell you that and then we can implement it.
+i have added example code for in app purchase, so implement in app purchase for my application in both android and ios, and if require you can do changes in database schema, but the in-app-purchase should work properly.
+in all-in-one offer listing api if is_rplus_offer is true then first show all that offer and then show other offers listed in redeem plus store.
+
+apiClient.js:
+import crypto from "crypto"
+
+export function encrypt(request_data) {
+  // write encryption function according to main application backend
+}
+
+export function decrypt(requestedData) {
+  // write decryption function according to main application backend
+}
+
+
+apiHandler.js:
+// api/apiHandler.js
+import { decrypt, encrypt } from "./apiClient"
+
+export async function API(values, endpoint, method) {
+
+  const url = `http://localhost:3000${endpoint}`
+  console.log("API Request", url)
+
+  const myHeaders = new Headers({
+    "Content-Type": "text/plain",
+    "accept": "application/json",
+    "Accept-Language": "en",
+  })
+
+  const token = localStorage.getItem("user_token") || localStorage.getItem("admin_token")
+  console.log("token header:", token)
+
+  if (!url.includes("/login") && !url.includes("/signup")) {
+    if (token) {
+      myHeaders.append("token", `${token}`)
+    }
+  }
+
+  let raw = ""
+
+  if (values !== undefined && values !== null && values !== "") {
+    raw = encrypt(values)
+  }
+  console.log("body:", raw)
+
+
+  let requestOptions
+  if (method === "GET") {
+    requestOptions = {
+      method: method,
+      credentials: 'include',
+      headers: myHeaders,
+      redirect: "follow",
+    }
+  } else if (method === "POST") {
+    requestOptions = {
+      method: method,
+      credentials: 'include',
+      headers: myHeaders,
+      body: raw,
+      redirect: "follow",
+    }
+  }
+
+  try {
+    const res = await fetch(url, requestOptions)
+
+    if (!res.ok) {
+      console.error(`HTTP error Status: ${res.status}`)
+      return { error: `HTTP error Status: ${res.status}`, code: res.status }
+    }
+
+    const responseText = await res.text()
+
+    if (responseText?.trim() !== "") {
+      try {
+        const result = decrypt(responseText)
+        console.log("Decrypted result:", result)
+
+        if (result?.error) {
+          console.error("Decryption error:", result.error)
+          return { error: result.error, code: 0 }
+        }
+        return result
+      } catch (error) {
+        console.error("Decryption error:", error)
+        return { error: error.message, code: 0 }
+      }
+    } else {
+      console.log("Empty response received")
+      return {}
+    }
+  } catch (error) {
+    console.error("API Request Error:", error)
+    return { error: error.message, code: 0 }
+  }
+}
+
+export const isUserLogIn = () => {
+  return !!localStorage.getItem("user_token") || !!localStorage.getItem("admin_token")
+}
+
+export const isAdmin = () => {
+  return !!localStorage.getItem("admin_token")
+}
+
+// don't ask me for any kind of environment variables, i will configure it later in the project, first focus on completeing code generation.
+// and layout of admin panal should be like this attached image.
+// continue generating code for admin panel frontend and focus on completing full admin panel frontend code.
+

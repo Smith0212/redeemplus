@@ -23,6 +23,11 @@ let auth_model = {
                 account_type,
                 signup_type = 's',
                 profile_image = null,
+                business_subcategory_id = null,
+                business_address = null,
+                street = null,
+                postal_code = null,
+                zone = null,
                 device_type = 'A',
                 device_name = 'unknown',
                 os_version = 'unknown',
@@ -90,8 +95,9 @@ let auth_model = {
 
             const insertUserQuery = `
             INSERT INTO tbl_users 
-            (username, email, password, country_code, phone, account_type, signup_type, social_id, profile_image, is_verified, step)
-            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
+            (username, email, password, country_code, phone, account_type, signup_type, social_id, profile_image, 
+             is_verified, step, business_subcategory_id, business_address, street, postal_code, zone)
+            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16)
             RETURNING id
         `;
             const { rows: insertRows } = await pool.query(insertUserQuery, [
@@ -105,7 +111,12 @@ let auth_model = {
                 signup_type === 's' ? null : social_id,
                 profile_image,
                 signup_type !== 's', // is_verified
-                signup_type === 's' ? 1 : 2 // step
+                signup_type === 's' ? 1 : 2, // step
+                business_subcategory_id,
+                business_address,
+                street,
+                postal_code,
+                zone
             ]);
 
             const newUserId = insertRows[0].id;
@@ -130,7 +141,6 @@ let auth_model = {
 
             const otpData = signup_type === 's' ? await sendOTP(email) : null;
 
-
             return sendResponse(req, res, 200, responseCode.SUCCESS, { keyword: 'success' }, {
                 user_id: newUserId,
                 user_token,
@@ -142,7 +152,7 @@ let auth_model = {
             return sendResponse(req, res, 500, responseCode.OPERATION_FAILED, { keyword: 'unsuccess' }, err.message);
         }
     },
-
+    
     async verifyOtp(req, res) {
         try {
             const { otp } = req.body;
@@ -165,7 +175,7 @@ let auth_model = {
 
             // Mark user as verified and step = 2
             let updateUserQuery;
-            if(user.step == 1){
+            if (user.step == 1) {
                 updateUserQuery = `
                 UPDATE tbl_users SET is_verified = TRUE, step = 2 WHERE id = $1 RETURNING is_verified, step
             `;
@@ -174,7 +184,7 @@ let auth_model = {
                 UPDATE tbl_users SET is_verified = TRUE WHERE id = $1 RETURNING is_verified
             `;
             }
-            
+
             const updateResult = await pool.query(updateUserQuery, [user.id]);
 
             // Optionally, delete or expire the OTP
@@ -186,7 +196,7 @@ let auth_model = {
             return sendResponse(req, res, 500, responseCode.OPERATION_FAILED, { keyword: 'unsuccess' }, err.message);
         }
     },
-    
+
     async editProfile(req, res) {
         try {
             const user_id = req.user.id
@@ -200,11 +210,15 @@ let auth_model = {
                 country_code,
                 phone,
                 profile_image,
-                business_category_id,
+                business_subcategory_id,
                 dob,
                 instagram_url,
                 tiktok_url,
                 whatsapp_url,
+                business_address,
+                street,
+                postal_code,
+                zone,
                 map_url,
                 latitude,
                 longitude,
@@ -212,9 +226,9 @@ let auth_model = {
 
             // Check if user exists
             const userCheckQuery = `
-                SELECT id FROM tbl_users 
-                WHERE id = $1 AND is_active = TRUE AND is_deleted = FALSE;
-            `;
+            SELECT id FROM tbl_users 
+            WHERE id = $1 AND is_active = TRUE AND is_deleted = FALSE;
+        `;
             const userResult = await pool.query(userCheckQuery, [user_id]);
             if (userResult.rows.length === 0) {
                 return sendResponse(req, res, 404, responseCode.OPERATION_FAILED, { keyword: 'user_not_found' }, {});
@@ -223,9 +237,9 @@ let auth_model = {
             // If email is being updated, check for uniqueness
             if (email) {
                 const emailCheckQuery = `
-                    SELECT id FROM tbl_users 
-                    WHERE email = $1 AND id != $2 AND is_active = TRUE AND is_deleted = FALSE;
-                `;
+                SELECT id FROM tbl_users 
+                WHERE email = $1 AND id != $2 AND is_active = TRUE AND is_deleted = FALSE;
+            `;
                 const emailResult = await pool.query(emailCheckQuery, [email, user_id]);
                 if (emailResult.rows.length > 0) {
                     return sendResponse(req, res, 200, responseCode.OPERATION_FAILED, { keyword: 'email_already_exists' }, {});
@@ -235,9 +249,9 @@ let auth_model = {
             // If username is being updated, check for uniqueness
             if (username) {
                 const usernameCheckQuery = `
-                    SELECT id FROM tbl_users 
-                    WHERE username = $1 AND id != $2 AND is_active = TRUE AND is_deleted = FALSE;
-                `;
+                SELECT id FROM tbl_users 
+                WHERE username = $1 AND id != $2 AND is_active = TRUE AND is_deleted = FALSE;
+            `;
                 const usernameResult = await pool.query(usernameCheckQuery, [username, user_id]);
                 if (usernameResult.rows.length > 0) {
                     return sendResponse(req, res, 200, responseCode.OPERATION_FAILED, { keyword: 'username_already_exists' }, {});
@@ -269,9 +283,9 @@ let auth_model = {
                 fields.push(`profile_image = $${idx++}`);
                 values.push(profile_image);
             }
-            if (business_category_id !== undefined) {
-                fields.push(`business_category_id = $${idx++}`);
-                values.push(business_category_id);
+            if (business_subcategory_id !== undefined) {
+                fields.push(`business_subcategory_id = $${idx++}`);
+                values.push(business_subcategory_id);
             }
             if (dob !== undefined) {
                 fields.push(`dob = $${idx++}`);
@@ -289,6 +303,22 @@ let auth_model = {
                 fields.push(`whatsapp_url = $${idx++}`);
                 values.push(whatsapp_url);
             }
+            if (business_address !== undefined) {
+                fields.push(`business_address = $${idx++}`);
+                values.push(business_address);
+            }
+            if (street !== undefined) {
+                fields.push(`street = $${idx++}`);
+                values.push(street);
+            }
+            if (postal_code !== undefined) {
+                fields.push(`postal_code = $${idx++}`);
+                values.push(postal_code);
+            }
+            if (zone !== undefined) {
+                fields.push(`zone = $${idx++}`);
+                values.push(zone);
+            }
             if (map_url !== undefined) {
                 fields.push(`map_url = $${idx++}`);
                 values.push(map_url);
@@ -304,15 +334,18 @@ let auth_model = {
 
             if (fields.length === 0) {
                 return sendResponse(req, res, 400, responseCode.OPERATION_FAILED, { keyword: 'no_fields_to_update' }, {});
-            } moment().toISOString(),
+            }
 
-                values.push(user_id);
+            values.push(user_id);
 
             const updateQuery = `
-                UPDATE tbl_users SET ${fields.join(', ')}
-                WHERE id = $${idx}
-                RETURNING id, username, email, country_code, phone, profile_image, business_category_id, dob, instagram_url, tiktok_url, whatsapp_url, map_url, latitude, longitude
-            `;
+            UPDATE tbl_users SET ${fields.join(', ')}
+            WHERE id = $${idx}
+            RETURNING id, username, email, country_code, phone, profile_image, 
+                      business_subcategory_id, dob, instagram_url, tiktok_url, 
+                      whatsapp_url, business_address, street, postal_code, zone,
+                      map_url, latitude, longitude
+        `;
             const updateResult = await pool.query(updateQuery, values);
 
             return sendResponse(
@@ -404,7 +437,7 @@ let auth_model = {
             if (!user.is_active) {
                 return sendResponse(req, res, 200, responseCode.INACTIVE_ACCOUNT, { keyword: 'account_is_deactivated' }, user);
             }
-            console.log("User Step:", user.step);   
+            console.log("User Step:", user.step);
             if (user.step < 3) {
                 return sendResponse(req, res, 200, responseCode.CODE_NULL, { keyword: 'choose_membership_plan' }, user);
             }
@@ -540,7 +573,7 @@ let auth_model = {
                 WHERE user_id = $1
             `;
             const checkResult = await pool.query(checkDeviceQuery, [user_id]);
-        
+
             const { device_token, user_token } = checkResult.rows[0];
             if (!device_token && !user_token) {
                 return sendResponse(req, res, 200, responseCode.SUCCESS, { keyword: 'already_logged_out' }, { user_id });

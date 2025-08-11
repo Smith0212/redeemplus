@@ -32,9 +32,6 @@ router.post(
   searchModel.search,
 )
 
-// Get recent searches
-// router.post("/getrecentsearches", checkApiKey, checkToken, searchModel.getRecentSearches)
-
 // Get recently viewed offers
 router.post(
   "/getrecentlyviewed",
@@ -48,8 +45,5 @@ router.post(
   ),
   searchModel.getRecentlyViewed,
 )
-
-// Clear recent searches
-// router.post("/clearrecentsearches", checkApiKey, checkToken, searchModel.clearRecentSearches)
 
 module.exports = router

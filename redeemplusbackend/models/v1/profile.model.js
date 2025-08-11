@@ -11,34 +11,36 @@ const profile_model = {
       const target_user_id = profile_user_id || user_id
       const is_own_profile = target_user_id == user_id
 
-      // Get user profile with membership info
+      // Get user profile with correct category/subcategory join
       const profileQuery = `
-                SELECT 
-                    u.id, u.username, u.email, u.phone, u.country_code, u.profile_image,
-                    u.account_type, u.business_category_id, u.dob, u.instagram_url, 
-                    u.tiktok_url, u.whatsapp_url, u.business_address, u.street, 
-                    u.postal_code, u.zone, u.map_url, u.latitude, u.longitude,
-                    u.created_at,
-                    bc.category_name, bc.sub_category_name,
-                    mp.name as membership_name, mp.has_verified_badge,
-                    um.start_date as membership_start, um.end_date as membership_end,
-                    um.offers_used,
-                    COALESCE(AVG(r.rating), 0) as avg_rating,
-                    COUNT(DISTINCT r.id) as total_reviews,
-                    COUNT(DISTINCT o.id) as total_offers,
-                    COUNT(DISTINCT s.id) as total_subscribers,
-                    COUNT(DISTINCT red.id) as total_redemptions
-                FROM tbl_users u
-                LEFT JOIN tbl_business_categories bc ON u.business_category_id = bc.id
-                LEFT JOIN tbl_user_memberships um ON u.id = um.user_id AND um.is_active = TRUE
-                LEFT JOIN tbl_membership_plans mp ON um.plan_id = mp.id
-                LEFT JOIN tbl_reviews r ON u.id = r.business_id AND r.is_active = TRUE AND r.is_deleted = FALSE
-                LEFT JOIN tbl_offers o ON u.id = o.user_id AND o.is_active = TRUE AND o.is_deleted = FALSE
-                LEFT JOIN tbl_user_subscriptions s ON u.id = s.business_id AND s.is_active = TRUE AND s.is_deleted = FALSE
-                LEFT JOIN tbl_redemptions red ON o.id = red.offer_id AND red.is_active = TRUE AND red.is_deleted = FALSE
-                WHERE u.id = $1 AND u.is_active = TRUE AND u.is_deleted = FALSE
-                GROUP BY u.id, bc.id, mp.id, um.id
-            `
+        SELECT 
+          u.id, u.username, u.email, u.phone, u.country_code, u.profile_image,
+          u.account_type, u.business_subcategory_id, u.dob, u.instagram_url, 
+          u.tiktok_url, u.whatsapp_url, u.business_address, u.street, 
+          u.postal_code, u.zone, u.map_url, u.latitude, u.longitude,
+          u.created_at,
+          bc.id as category_id, bc.category_name,
+          bsc.id as subcategory_id, bsc.subcategory_name,
+          mp.name as membership_name, mp.has_verified_badge,
+          um.start_date as membership_start, um.end_date as membership_end,
+          um.offers_used,
+          COALESCE(AVG(r.rating), 0) as avg_rating,
+          COUNT(DISTINCT r.id) as total_reviews,
+          COUNT(DISTINCT o.id) as total_offers,
+          COUNT(DISTINCT s.id) as total_subscribers,
+          COUNT(DISTINCT red.id) as total_redemptions
+        FROM tbl_users u
+        LEFT JOIN tbl_business_subcategories bsc ON u.business_subcategory_id = bsc.id
+        LEFT JOIN tbl_business_categories bc ON bsc.category_id = bc.id
+        LEFT JOIN tbl_user_memberships um ON u.id = um.user_id AND um.is_active = TRUE
+        LEFT JOIN tbl_membership_plans mp ON um.plan_id = mp.id
+        LEFT JOIN tbl_reviews r ON u.id = r.business_id AND r.is_active = TRUE AND r.is_deleted = FALSE
+        LEFT JOIN tbl_offers o ON u.id = o.user_id AND o.is_active = TRUE AND o.is_deleted = FALSE
+        LEFT JOIN tbl_user_subscriptions s ON u.id = s.business_id AND s.is_active = TRUE AND s.is_deleted = FALSE
+        LEFT JOIN tbl_redemptions red ON o.id = red.offer_id AND red.is_active = TRUE AND red.is_deleted = FALSE
+        WHERE u.id = $1 AND u.is_active = TRUE AND u.is_deleted = FALSE
+        GROUP BY u.id, bc.id, bsc.id, mp.id, um.id
+      `
 
       const { rows } = await pool.query(profileQuery, [target_user_id])
 
@@ -52,14 +54,14 @@ const profile_model = {
       let is_subscribed = false
       if (!is_own_profile) {
         const subscriptionQuery = `
-                    SELECT id FROM tbl_user_subscriptions 
-                    WHERE user_id = $1 AND business_id = $2 AND is_active = TRUE AND is_deleted = FALSE
-                `
+          SELECT id FROM tbl_user_subscriptions 
+          WHERE user_id = $1 AND business_id = $2 AND is_active = TRUE AND is_deleted = FALSE
+        `
         const subResult = await pool.query(subscriptionQuery, [user_id, target_user_id])
         is_subscribed = subResult.rows.length > 0
       }
 
-     // Format response
+      // Format response
       const response = {
         id: profile.id,
         username: profile.username,
@@ -76,12 +78,17 @@ const profile_model = {
 
       // Only show business info if account_type is not 'individual'
       if (profile.account_type == "business") {
-        response.business_category = profile.category_name
+        response.business_category = profile.category_id
           ? {
-            id: profile.business_category_id,
-            category_name: profile.category_name,
-            sub_category_name: profile.sub_category_name,
-          }
+              id: profile.category_id,
+              category_name: profile.category_name,
+              subcategory: profile.subcategory_id
+                ? {
+                    id: profile.subcategory_id,
+                    subcategory_name: profile.subcategory_name,
+                  }
+                : null,
+            }
           : null
 
         response.location = {
@@ -131,7 +138,7 @@ const profile_model = {
         phone,
         country_code,
         profile_image,
-        business_category_id,
+        business_subcategory_id,
         dob,
         instagram_url,
         tiktok_url,
@@ -167,18 +174,27 @@ const profile_model = {
         }
       }
 
-      // Build dynamic update query
-      const fields = []
-      const values = []
-      let idx = 1
+      // If business_subcategory_id is provided, check if it exists and get its category_id
+      let category_id = null
+      if (business_subcategory_id) {
+        const subcatCheck = await pool.query(
+          "SELECT id, category_id FROM tbl_business_subcategories WHERE id = $1 AND is_deleted = FALSE",
+          [business_subcategory_id]
+        )
+        if (subcatCheck.rows.length === 0) {
+          return sendResponse(req, res, 200, responseCode.OPERATION_FAILED, { keyword: "invalid_subcategory" }, {})
+        }
+        category_id = subcatCheck.rows[0].category_id
+      }
 
+      // Only update business_subcategory_id in tbl_users, not business_category_id
       const updateFields = {
         username,
         email,
         phone,
         country_code,
         profile_image,
-        business_category_id,
+        business_subcategory_id,
         dob,
         instagram_url,
         tiktok_url,
@@ -191,6 +207,10 @@ const profile_model = {
         latitude,
         longitude,
       }
+
+      const fields = []
+      const values = []
+      let idx = 1
 
       for (const [key, value] of Object.entries(updateFields)) {
         if (value !== undefined) {
@@ -207,11 +227,11 @@ const profile_model = {
       values.push(user_id)
 
       const updateQuery = `
-                UPDATE tbl_users 
-                SET ${fields.join(", ")}
-                WHERE id = $${idx} AND is_active = TRUE AND is_deleted = FALSE
-                RETURNING *
-            `
+        UPDATE tbl_users 
+        SET ${fields.join(", ")}
+        WHERE id = $${idx} AND is_active = TRUE AND is_deleted = FALSE
+        RETURNING *
+      `
 
       const result = await pool.query(updateQuery, values)
 
@@ -219,7 +239,11 @@ const profile_model = {
         return sendResponse(req, res, 404, responseCode.OPERATION_FAILED, { keyword: "user_not_found" }, {})
       }
 
-      const{password, ...safeUser} = result.rows[0]
+      const { password, ...safeUser } = result.rows[0]
+      // Attach category_id if business_subcategory_id was updated
+      if (business_subcategory_id) {
+        safeUser.business_category_id = category_id
+      }
 
       return sendResponse(req, res, 200, responseCode.SUCCESS, { keyword: "profile_updated" }, safeUser)
     } catch (err) {

@@ -187,19 +187,5 @@ router.post(
   offerModel.listInRedeemPlusStore,
 )
 
-// Get my offers
-// router.post(
-//   "/getMyOffers",
-//   checkApiKey,
-//   checkToken,
-//   validateJoi(
-//     Joi.object({
-//       page: Joi.number().min(1).optional(),
-//       limit: Joi.number().min(1).max(50).optional(),
-//       status: Joi.string().valid("active", "expired", "all").optional(),
-//     }),
-//   ),
-//   offerModel.getMyOffers,
-// )
 
 module.exports = router

@@ -19,7 +19,7 @@ router.post("/signup", checkApiKey, validateJoi(Joi.object({
     signup_type: Joi.string().valid('s', 'g', 'a', 'f').required(), // s: standard, g: google, a: apple, f: facebook
     profile_image: Joi.string().optional(),
     social_id: Joi.string().max(255).optional(),
-    business_category_id: Joi.number().optional(),
+    business_subcategory_id: Joi.number().optional(),
     instagram_url: Joi.string().uri().optional(),
     tiktok_url: Joi.string().uri().optional(),
     whatsapp_url: Joi.string().uri().optional(),

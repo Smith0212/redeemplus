@@ -30,31 +30,6 @@ router.post(
   categoryModel.getOfferCategories,
 )
 
-// Get category statistics
-// router.post(
-//   "/getcategorystats",
-//   checkApiKey,
-//   validateJoi(
-//     Joi.object({
-//       category_type: Joi.string().valid("business", "offer").optional(),
-//     }),
-//   ),
-//   categoryModel.getCategoryStats,
-// )
-
-// Get popular categories
-// router.post(
-//   "/getpopularcategories",
-//   checkApiKey,
-//   validateJoi(
-//     Joi.object({
-//       limit: Joi.number().min(1).max(50).optional(),
-//       category_type: Joi.string().valid("business", "offer").optional(),
-//     }),
-//   ),
-//   categoryModel.getPopularCategories,
-// )
-
 // Search categories
 router.post(
   "/searchCategories",
@@ -68,18 +43,5 @@ router.post(
   ),
   categoryModel.searchCategories,
 )
-
-// Get category details
-// router.post(
-//   "/getcategorydetails",
-//   checkApiKey,
-//   validateJoi(
-//     Joi.object({
-//       category_id: Joi.number().required(),
-//       category_type: Joi.string().valid("business", "offer").optional(),
-//     }),
-//   ),
-//   categoryModel.getCategoryDetails,
-// )
 
 module.exports = router

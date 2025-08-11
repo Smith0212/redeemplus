@@ -391,26 +391,6 @@ const search_model = {
     }
   },
 
-  // async getRecentSearches(req, res) {
-  //   try {
-  //     const user_id = req.user.id
-
-  //     const recentSearches = []
-
-  //     return sendResponse(
-  //       req,
-  //       res,
-  //       200,
-  //       responseCode.SUCCESS,
-  //       { keyword: "success" },
-  //       { recent_searches: recentSearches },
-  //     )
-  //   } catch (err) {
-  //     console.error("Get Recent Searches Error:", err)
-  //     return sendResponse(req, res, 500, responseCode.OPERATION_FAILED, { keyword: "failed" }, err.message)
-  //   }
-  // },
-
   async getRecentlyViewed(req, res) {
     try {
       const user_id = req.user.id
@@ -478,16 +458,6 @@ const search_model = {
     }
   },
 
-  // async clearRecentSearches(req, res) {
-  //   try {
-  //     const user_id = req.user.id
-
-  //     return sendResponse(req, res, 200, responseCode.SUCCESS, { keyword: "recent_searches_cleared" }, {})
-  //   } catch (err) {
-  //     console.error("Clear Recent Searches Error:", err)
-  //     return sendResponse(req, res, 500, responseCode.OPERATION_FAILED, { keyword: "failed" }, err.message)
-  //   }
-  // },
 }
 
 module.exports = search_model

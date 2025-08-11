@@ -3,129 +3,6 @@ const pool = require("../../config/database")
 const responseCode = require("../../config/responseCode")
 
 const membership_model = {
-  // async getMembershipPlans(req, res) {
-  //   try {
-  //     const plansQuery = `
-  //               SELECT 
-  //                   id, name, price, duration_days, offer_limit, visibility_days,
-  //                   has_free_listing_rplus, has_verified_badge, has_priority_support,
-  //                   has_exclusive_promo_access, has_unlimited_offers, is_auto_renewal
-  //               FROM tbl_membership_plans 
-  //               WHERE is_active = TRUE AND is_deleted = FALSE
-  //               ORDER BY price ASC
-  //           `
-
-  //     const { rows } = await pool.query(plansQuery)
-
-  //     const plans = rows.map((plan) => ({
-  //       ...plan,
-  //       features: {
-  //         offers_per_year: plan.offer_limit || "Unlimited",
-  //         offer_visibility_days: plan.visibility_days,
-  //         free_listing_rplus: plan.has_free_listing_rplus,
-  //         verified_badge: plan.has_verified_badge,
-  //         priority_support: plan.has_priority_support,
-  //         exclusive_promo_access: plan.has_exclusive_promo_access,
-  //         unlimited_offers: plan.has_unlimited_offers,
-  //         auto_renewal: plan.is_auto_renewal,
-  //       },
-  //     }))
-
-  //     return sendResponse(req, res, 200, responseCode.SUCCESS, { keyword: "success" }, { plans })
-  //   } catch (err) {
-  //     console.error("Get Membership Plans Error:", err)
-  //     return sendResponse(req, res, 500, responseCode.OPERATION_FAILED, { keyword: "failed" }, err.message)
-  //   }
-  // },
-
-  // async getCurrentMembership(req, res) {
-  //   try {
-  //     const user_id = req.user.id
-
-  //     const membershipQuery = `
-  //               SELECT 
-  //                   um.id, um.start_date, um.end_date, um.offers_used,
-  //                   mp.id as plan_id, mp.name, mp.price, mp.offer_limit, mp.visibility_days,
-  //                   mp.has_free_listing_rplus, mp.has_verified_badge, mp.has_priority_support,
-  //                   mp.has_exclusive_promo_access, mp.has_unlimited_offers, mp.is_auto_renewal,
-  //                   CASE 
-  //                       WHEN um.end_date > CURRENT_TIMESTAMP THEN TRUE 
-  //                       ELSE FALSE 
-  //                   END as validity
-  //               FROM tbl_user_memberships um
-  //               JOIN tbl_membership_plans mp ON um.plan_id = mp.id
-  //               WHERE um.user_id = $1 AND um.is_active = TRUE AND um.is_deleted = FALSE
-  //               ORDER BY um.created_at DESC
-  //               LIMIT 1
-  //           `
-
-  //     const { rows } = await pool.query(membershipQuery, [user_id])
-
-  //     if (rows.length === 0) {
-  //       // Return default Bronze membership
-  //       const defaultPlan = await pool.query(
-  //         "SELECT * FROM tbl_membership_plans WHERE name = $1 AND is_active = TRUE",
-  //         ["Bronze"],
-  //       )
-
-  //       return sendResponse(
-  //         req,
-  //         res,
-  //         200,
-  //         responseCode.SUCCESS,
-  //         { keyword: "success" },
-  //         {
-  //           membership: {
-  //             ...defaultPlan.rows[0],
-  //             is_active: true,
-  //             offers_used: 0,
-  //             start_date: null,
-  //             end_date: null,
-  //           },
-  //         },
-  //       )
-  //     }
-
-  //     const membership = rows[0]
-
-  //     // Calculate remaining offers
-  //     const remaining_offers = membership.offer_limit
-  //       ? Math.max(0, membership.offer_limit - membership.offers_used)
-  //       : "Unlimited"
-
-  //     // Calculate remaining redeemption
-  //     const remaining_redeemption = membership.redeemption_limit
-  //       ? Math.max(0, membership.redeemption_limit - (membership.redeemption_used || 0))
-  //       : "Unlimited"
-
-  //     // Calculate days remaining
-  //     const days_remaining = membership.is_active
-  //       ? Math.ceil((new Date(membership.end_date) - new Date()) / (1000 * 60 * 60 * 24))
-  //       : 0
-
-  //     const response = {
-  //       ...membership,
-  //       remaining_offers,
-  //       remaining_redeemption,
-  //       days_remaining,
-  //       features: {
-  //         offers_per_year: membership.offer_limit || "Unlimited",
-  //         offer_visibility_days: membership.visibility_days,
-  //         free_listing_rplus: membership.has_free_listing_rplus,
-  //         verified_badge: membership.has_verified_badge,
-  //         priority_support: membership.has_priority_support,
-  //         exclusive_promo_access: membership.has_exclusive_promo_access,
-  //         unlimited_offers: membership.has_unlimited_offers,
-  //         auto_renewal: membership.is_auto_renewal,
-  //       },
-  //     }
-
-  //     return sendResponse(req, res, 200, responseCode.SUCCESS, { keyword: "success" }, { membership: response })
-  //   } catch (err) {
-  //     console.error("Get Current Membership Error:", err)
-  //     return sendResponse(req, res, 500, responseCode.OPERATION_FAILED, { keyword: "failed" }, err.message)
-  //   }
-  // },
 
   async getMembershipInfo(req, res) {
     try {
@@ -192,8 +69,7 @@ const membership_model = {
           );
 
           const defaultPlan = defaultPlanResult.rows[0];
-          console.log('11111111111')
-
+          
           return sendResponse(req, res, 200, responseCode.SUCCESS, { keyword: "success" }, {
             membership: {
               ...defaultPlan,
@@ -204,16 +80,6 @@ const membership_model = {
               days_remaining: defaultPlan.duration_days || 0,
               start_date: null,
               end_date: null,
-              // features: {
-              //   offers_per_year: defaultPlan.offer_limit || "Unlimited",
-              //   offer_visibility_days: defaultPlan.visibility_days,
-              //   free_listing_rplus: defaultPlan.has_free_listing_rplus,
-              //   verified_badge: defaultPlan.has_verified_badge,
-              //   priority_support: defaultPlan.has_priority_support,
-              //   exclusive_promo_access: defaultPlan.has_exclusive_promo_access,
-              //   unlimited_offers: defaultPlan.has_unlimited_offers,
-              //   auto_renewal: defaultPlan.is_auto_renewal,
-              // },
             },
           });
         }
@@ -246,16 +112,6 @@ const membership_model = {
           remaining_offers,
           remaining_redeemption,
           days_remaining,
-          // features: {
-          //   offers_per_year: membership.offer_limit || "Unlimited",
-          //   offer_visibility_days: membership.visibility_days,
-          //   free_listing_rplus: membership.has_free_listing_rplus,
-          //   verified_badge: membership.has_verified_badge,
-          //   priority_support: membership.has_priority_support,
-          //   exclusive_promo_access: membership.has_exclusive_promo_access,
-          //   unlimited_offers: membership.has_unlimited_offers,
-          //   auto_renewal: membership.is_auto_renewal,
-          // },
         };
 
         return sendResponse(req, res, 200, responseCode.SUCCESS, { keyword: "success" }, { membership: response });

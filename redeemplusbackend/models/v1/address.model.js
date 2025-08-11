@@ -27,9 +27,23 @@ const address_model = {
       try {
         await client.query("BEGIN")
 
-        // If this is set as default, unset other default addresses
+        // If is_default is true, check if user already has a default address
         if (is_default) {
-          await client.query("UPDATE tbl_delivery_addresses SET is_default = FALSE WHERE user_id = $1", [user_id])
+          const defaultCheck = await client.query(
+            "SELECT id FROM tbl_delivery_addresses WHERE user_id = $1 AND is_default = TRUE AND is_active = TRUE AND is_deleted = FALSE",
+            [user_id]
+          )
+          if (defaultCheck.rows.length > 0) {
+            await client.query("ROLLBACK")
+            return sendResponse(
+              req,
+              res,
+              400,
+              responseCode.OPERATION_FAILED,
+              { keyword: "default_address_exists" },
+              { message: "User already has a default address" }
+            )
+          }
         }
 
         // Add new address
@@ -271,7 +285,7 @@ const address_model = {
 
         return sendResponse(req, res, 200, responseCode.SUCCESS, { keyword: "default_address_set" }, { address_id })
       } catch (err) {
-        await client.query("ROLLBACK")
+        await client.query("ROLLBACK" )
         throw err
       } finally {
         client.release()

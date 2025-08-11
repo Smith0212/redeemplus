@@ -6,7 +6,7 @@ const router = express.Router()
 
 // Redeem with PIN code
 router.post(
-  "/redeemwithpin",
+  "/redeemWithPin",
   checkApiKey,
   checkToken,
   validateJoi(

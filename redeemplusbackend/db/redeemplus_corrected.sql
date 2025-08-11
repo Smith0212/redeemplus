@@ -86,27 +86,6 @@ CREATE TABLE tbl_device_info (
     FOREIGN KEY (user_id) REFERENCES tbl_users(id) ON DELETE CASCADE
 );
 
--- Membership plans
-CREATE TABLE tbl_membership_plans (
-    id BIGSERIAL PRIMARY KEY,
-    name VARCHAR(50) NOT NULL,
-    price DECIMAL(10, 2) NOT NULL,
-    duration_days INTEGER NOT NULL, -- validity of the plan in days
-    offer_limit INTEGER,
-    redeemption_limit BIGINT,
-    visibility_days INTEGER NOT NULL,
-    has_free_listing_rplus BOOLEAN DEFAULT FALSE,
-    has_verified_badge BOOLEAN DEFAULT FALSE,
-    has_priority_support BOOLEAN DEFAULT FALSE,
-    has_exclusive_promo_access BOOLEAN DEFAULT FALSE,
-    has_unlimited_offers BOOLEAN DEFAULT FALSE,
-    is_auto_renewal BOOLEAN DEFAULT TRUE,
-    is_active BOOLEAN DEFAULT TRUE,
-    is_deleted BOOLEAN DEFAULT FALSE,
-    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
-);
-
 CREATE TABLE tbl_membership_plans (
     id BIGSERIAL PRIMARY KEY,
     name VARCHAR(50) NOT NULL,
@@ -170,22 +149,11 @@ CREATE TABLE tbl_user_memberships (
     FOREIGN KEY (payment_id) REFERENCES tbl_payments(id) ON DELETE SET NULL
 );
 
--- CREATE TABLE tbl_offer_types (
---     id BIGSERIAL PRIMARY KEY,
---     offer_category_name VARCHAR(128) NOT NULL,
---     offer_subcategory_name VARCHAR(128),
---     offer_subcategory_image TEXT,
---     is_active BOOLEAN DEFAULT TRUE,
---     is_deleted BOOLEAN DEFAULT FALSE,
---     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
---     updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
--- );
-
 -- Offer categories
 CREATE TABLE tbl_offer_categories (
     id BIGSERIAL PRIMARY KEY,
     offer_category_name VARCHAR(128) NOT NULL,
-    offer_category_image TEXT,
+    -- offer_category_image TEXT,
     is_active BOOLEAN DEFAULT TRUE,
     is_deleted BOOLEAN DEFAULT FALSE,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
@@ -235,6 +203,7 @@ CREATE TABLE tbl_offers (
     offer_longitude VARCHAR(16),
     available_branches TEXT,
     is_listed_in_rplus BOOLEAN DEFAULT FALSE,
+    is_rplus_offer BOOLEAN DEFAULT FALSE,
     user_acknowledgment BOOLEAN DEFAULT FALSE,
     view_count INTEGER DEFAULT 0,
     total_redemptions INTEGER DEFAULT 0,
@@ -444,8 +413,7 @@ CREATE TABLE tbl_ads (
     -- description TEXT,
     image_url TEXT,
     target_url TEXT,
-    is_activeve BOOLEAN DEFAULT TRUE,
-    is_dele BOOLEAN DEFAULT TRUE,
+    is_active BOOLEAN DEFAULT TRUE,
     is_deleted BOOLEAN DEFAULT FALSE,
     start_date TIMESTAMP WITH TIME ZONE NOT NULL,
     end_date TIMESTAMP WITH TIME ZONE NOT NULL,
@@ -500,33 +468,7 @@ CREATE TABLE tbl_report_voice_notes (
 );
 
 -- Static pages
-CREATE TABLCREATE TABLE tbl_membership_plans (
-    id BIGSERIAL PRIMARY KEY,
-    name VARCHAR(50) NOT NULL,
-    price DECIMAL(10, 2) NOT NULL,
-    duration_days INTEGER NOT NULL, -- validity of the plan in days
-    offer_limit INTEGER, -- total number of offers allowed to posted in plan
-    offer_quantity_limit INTEGER, -- max quantity per offer
-    limit_per_user INTEGER, -- max redemption per user
-
-    redemption_limit INTEGER, -- renamed from 'redeemption_limit' (corrected typo)
-    visibility_days INTEGER NOT NULL, -- max offer duration per post
-
-    can_update_currency BOOLEAN DEFAULT FALSE, -- currency update allowed?
-    edit_access VARCHAR(20) DEFAULT 'limited', -- 'limited' or 'full'
-    allowed_offer_types TEXT[], -- allowed offer types (nullable = all types allowed)
-
-    has_free_listing_rplus BOOLEAN DEFAULT FALSE,
-    has_verified_badge BOOLEAN DEFAULT FALSE,
-    has_priority_support BOOLEAN DEFAULT FALSE,
-    has_exclusive_promo_access BOOLEAN DEFAULT FALSE,
-    has_unlimited_offers BOOLEAN DEFAULT FALSE,
-    is_auto_renewal BOOLEAN DEFAULT TRUE,
-    is_active BOOLEAN DEFAULT TRUE,
-    is_deleted BOOLEAN DEFAULT FALSE,
-    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
-);E tbl_static_pages (
+CREATE TABLE tbl_static_pages (
     id BIGSERIAL PRIMARY KEY,
     page_key VARCHAR(50) UNIQUE NOT NULL,
     title VARCHAR(255) NOT NULL,
@@ -547,11 +489,58 @@ CREATE INDEX idx_notifications_user_id ON tbl_notifications(user_id);
 CREATE INDEX idx_reviews_business_id ON tbl_reviews(business_id);
 CREATE INDEX idx_subscriptions_user_business ON tbl_user_subscriptions(user_id, business_id);
 
--- Insert default membership plans
-INSERT INTO tbl_membership_plans (name, price, duration_days, offer_limit, visibility_days, has_free_listing_rplus, has_verified_badge, has_priority_support, has_exclusive_promo_access, has_unlimited_offers) VALUES
-('Bronze', 0.00, 365, 20, 30, FALSE, FALSE, FALSE, FALSE, FALSE),
-('Silver', 15.00, 365, 120, 30, FALSE, FALSE, TRUE, TRUE, FALSE),
-('Gold', 30.00, 365, NULL, 90, TRUE, TRUE, TRUE, TRUE, TRUE);
+-- Bronze (Free)
+INSERT INTO tbl_membership_plans (
+    name, price, duration_days,
+    offer_limit, offer_quantity_limit, limit_per_user,
+    redemption_limit, visibility_days,
+    can_update_currency, edit_access, allowed_offer_types,
+    has_free_listing_rplus, has_verified_badge, has_priority_support,
+    has_exclusive_promo_access, has_unlimited_offers
+) VALUES (
+    'Bronze', 0.00, 365,
+    5, 20, 1,
+    1000, 14,
+    FALSE, 'limited', ARRAY[
+        'Buy 1, Get 2', 'Buy 1, Get 3', 'Discount Deals', '24Hrs Deals'
+    ],
+    FALSE, FALSE, FALSE,
+    FALSE, FALSE
+);
+
+-- Silver (Paid)
+INSERT INTO tbl_membership_plans (
+    name, price, duration_days,
+    offer_limit, offer_quantity_limit, limit_per_user,
+    redemption_limit, visibility_days,
+    can_update_currency, edit_access, allowed_offer_types,
+    has_free_listing_rplus, has_verified_badge, has_priority_support,
+    has_exclusive_promo_access, has_unlimited_offers
+) VALUES (
+    'Silver', 15.00, 365,
+    20, 100, 5,
+    NULL, 30,
+    FALSE, 'limited', NULL, -- NULL = all types allowed
+    FALSE, FALSE, TRUE,
+    TRUE, FALSE
+);
+
+-- Gold (Paid)
+INSERT INTO tbl_membership_plans (
+    name, price, duration_days,
+    offer_limit, offer_quantity_limit, limit_per_user,
+    redemption_limit, visibility_days,
+    can_update_currency, edit_access, allowed_offer_types,
+    has_free_listing_rplus, has_verified_badge, has_priority_support,
+    has_exclusive_promo_access, has_unlimited_offers
+) VALUES (
+    'Gold', 30.00, 365,
+    NULL, NULL, 30,
+    NULL, 60,
+    TRUE, 'full', NULL,
+    TRUE, TRUE, TRUE,
+    TRUE, TRUE
+);
 
 -- Subcategories for "Buy and Get Offers" (Category ID: 1)
 INSERT INTO tbl_offer_subcategories (offer_category_id, offer_subcategory_name)
