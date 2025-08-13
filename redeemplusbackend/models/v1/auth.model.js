@@ -28,6 +28,8 @@ let auth_model = {
                 street = null,
                 postal_code = null,
                 zone = null,
+                latitude = null,
+                longitude = null,
                 device_type = 'A',
                 device_name = 'unknown',
                 os_version = 'unknown',
@@ -139,6 +141,24 @@ let auth_model = {
                 timezone
             ]);
 
+            // Insert into tbl_delivery_addresses
+            const insertAddressQuery = `
+            INSERT INTO tbl_delivery_addresses
+            (user_id, address, street, postal_code, zone, latitude, longitude, country_code, phone_number, is_default)
+            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, TRUE)
+        `;
+            await pool.query(insertAddressQuery, [
+                newUserId,
+                business_address,
+                street,
+                postal_code,
+                zone,
+                latitude,
+                longitude,
+                country_code,
+                phone
+            ]);
+
             const otpData = signup_type === 's' ? await sendOTP(email) : null;
 
             return sendResponse(req, res, 200, responseCode.SUCCESS, { keyword: 'success' }, {
@@ -152,7 +172,7 @@ let auth_model = {
             return sendResponse(req, res, 500, responseCode.OPERATION_FAILED, { keyword: 'unsuccess' }, err.message);
         }
     },
-    
+
     async verifyOtp(req, res) {
         try {
             const { otp } = req.body;

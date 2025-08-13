@@ -14,16 +14,18 @@ const redemption_model = {
 
       // Get offer details and validate
       const offerQuery = `
-                SELECT 
-                    o.*, u.username as business_name, u.phone as business_phone,
-                    mp.quantity_per_user as max_per_user
-                FROM tbl_offers o
-                JOIN tbl_users u ON o.user_id = u.id
-                LEFT JOIN tbl_user_memberships um ON u.id = um.user_id AND um.is_active = TRUE
-                LEFT JOIN tbl_membership_plans mp ON um.plan_id = mp.id
-                WHERE o.id = $1 AND o.is_active = TRUE AND o.is_deleted = FALSE 
-                AND o.end_date > CURRENT_TIMESTAMP
-            `
+        SELECT 
+          o.*, 
+          u.username as business_name, 
+          u.phone as business_phone,
+          mp.redemption_limit as user_redemption_limit,
+        FROM tbl_offers o
+        JOIN tbl_users u ON o.user_id = u.id
+        LEFT JOIN tbl_user_memberships um ON u.id = um.user_id AND um.is_active = TRUE
+        LEFT JOIN tbl_membership_plans mp ON mp.id = um.plan_id AND mp.is_active = TRUE
+        WHERE o.id = $1 AND o.is_active = TRUE AND o.is_deleted = FALSE 
+          AND o.end_date > CURRENT_TIMESTAMP
+      `
 
       const offerResult = await pool.query(offerQuery, [offer_id])
 
@@ -49,17 +51,30 @@ const redemption_model = {
       }
 
       // Check user redemption limit
-      const userRedemptionQuery = `
-                SELECT COALESCE(SUM(quantity), 0) as total_redeemed 
-                FROM tbl_redemptions 
-                WHERE offer_id = $1 AND user_id = $2 AND is_active = TRUE AND is_deleted = FALSE
-            `
+      const thisOfferRedemptionQuery = `
+        SELECT COALESCE(SUM(quantity), 0) as total_redeemed 
+        FROM tbl_redemptions 
+        WHERE offer_id = $1 AND user_id = $2 AND is_active = TRUE AND is_deleted = FALSE
+      `
 
-      const userRedemptionResult = await pool.query(userRedemptionQuery, [offer_id, user_id])
-      const totalRedeemed = Number.parseInt(userRedemptionResult.rows[0].total_redeemed)
+      const thisOfferRedemptionResult = await pool.query(thisOfferRedemptionQuery, [offer_id, user_id])
+      const thisOfferRedeemed = Number.parseInt(thisOfferRedemptionResult.rows[0].total_redeemed)
 
-      if (totalRedeemed + quantity > (offer.quantity_per_user)) {
+      if (thisOfferRedeemed + quantity > offer.quantity_per_user) {
         return sendResponse(req, res, 200, responseCode.OPERATION_FAILED, { keyword: "redemption_limit_exceeded" }, {})
+      }
+
+      const totalRedemptionQuery = `
+        SELECT COALESCE(SUM(quantity), 0) as total_redeemed 
+        FROM tbl_redemptions 
+        WHERE user_id = $1 AND is_active = TRUE AND is_deleted = FALSE
+      `
+
+      const totalRedemptionResult = await pool.query(totalRedemptionQuery, [user_id])
+      const totalRedeemed = Number.parseInt(totalRedemptionResult.rows[0].total_redeemed)
+
+      if (totalRedeemed + quantity > offer.user_redemption_limit) {
+        return sendResponse(req, res, 200, responseCode.OPERATION_FAILED, { keyword: "user_redemption_limit_exceeded" }, {})
       }
 
       // Check valid days
@@ -72,9 +87,9 @@ const redemption_model = {
       // Check valid times if any
       const currentTime = new Date().toTimeString().slice(0, 5) // HH:MM format
       const validTimesQuery = `
-                SELECT * FROM tbl_offer_valid_times 
-                WHERE offer_id = $1 AND is_active = TRUE AND is_deleted = FALSE
-            `
+        SELECT * FROM tbl_offer_valid_times 
+        WHERE offer_id = $1 AND is_active = TRUE AND is_deleted = FALSE
+      `
 
       const validTimesResult = await pool.query(validTimesQuery, [offer_id])
 
@@ -93,19 +108,19 @@ const redemption_model = {
       try {
         await client.query("BEGIN")
 
-        // Generate confirmation number
-        const confirmationNumber = `RDP${Date.now()}${Math.floor(Math.random() * 1000)
-          .toString()
-          .padStart(3, "0")}`
+        // // Generate confirmation number
+        // const confirmationNumber = `RDP${Date.now()}${Math.floor(Math.random() * 1000)
+        //   .toString()
+        //   .padStart(3, "0")}`
 
         // Create redemption record
         const redemptionQuery = `
-                    INSERT INTO tbl_redemptions (
-                        offer_id, user_id, redemption_method, pin_code, 
-                        confirmation_number, quantity, total_amount
-                    ) VALUES ($1, $2, 'pin_code', $3, $4, $5, $6)
-                    RETURNING id, confirmation_number
-                `
+          INSERT INTO tbl_redemptions (
+            offer_id, user_id, redemption_method, pin_code, 
+            quantity, total_amount
+          ) VALUES ($1, $2, 'pin_code', $3, $4, $5)
+          RETURNING id
+        `
 
         const totalAmount = offer.total_price * quantity
 
@@ -113,7 +128,6 @@ const redemption_model = {
           offer_id,
           user_id,
           pin_code,
-          confirmationNumber,
           quantity,
           totalAmount,
         ])
@@ -129,7 +143,7 @@ const redemption_model = {
         // Create notification for business owner
         await client.query(
           `INSERT INTO tbl_notifications (user_id, sender_id, type, title, message, data) 
-                     VALUES ($1, $2, 'offer_redeemed', 'Offer Redeemed', $3, $4)`,
+            VALUES ($1, $2, 'offer_redeemed', 'Offer Redeemed', $3, $4)`,
           [
             offer.user_id,
             user_id,
@@ -175,7 +189,7 @@ const redemption_model = {
   async requestDelivery(req, res) {
     try {
       const user_id = req.user.id
-      const { offer_id, delivery_address_id, quantity = 1, special_request } = req.body
+      const { offer_id, delivery_address_id, quantity = 1, message } = req.body
 
       if (!offer_id || !delivery_address_id) {
         return sendResponse(req, res, 400, responseCode.OPERATION_FAILED, { keyword: "missing_parameters" }, {})
@@ -185,11 +199,8 @@ const redemption_model = {
       const offerQuery = `
                 SELECT 
                     o.*, u.username as business_name, u.phone as business_phone,
-                    mp.quantity_per_user as max_per_user
                 FROM tbl_offers o
                 JOIN tbl_users u ON o.user_id = u.id
-                LEFT JOIN tbl_user_memberships um ON u.id = um.user_id AND um.is_active = TRUE
-                LEFT JOIN tbl_membership_plans mp ON um.plan_id = mp.id
                 WHERE o.id = $1 AND o.is_active = TRUE AND o.is_deleted = FALSE 
                 AND o.end_date > CURRENT_TIMESTAMP
             `
@@ -222,21 +233,36 @@ const redemption_model = {
       const address = addressResult.rows[0]
 
       // Check quantity and user limits (same as PIN code redemption)
+      // Check quantity limits
       if (quantity > offer.quantity_available) {
         return sendResponse(req, res, 200, responseCode.OPERATION_FAILED, { keyword: "insufficient_quantity" }, {})
       }
 
-      const userRedemptionQuery = `
-                SELECT COALESCE(SUM(quantity), 0) as total_redeemed 
-                FROM tbl_redemptions 
-                WHERE offer_id = $1 AND user_id = $2 AND is_active = TRUE AND is_deleted = FALSE
-            `
+      // Check user redemption limit
+      const thisOfferRedemptionQuery = `
+        SELECT COALESCE(SUM(quantity), 0) as total_redeemed 
+        FROM tbl_redemptions 
+        WHERE offer_id = $1 AND user_id = $2 AND is_active = TRUE AND is_deleted = FALSE
+      `
 
-      const userRedemptionResult = await pool.query(userRedemptionQuery, [offer_id, user_id])
-      const totalRedeemed = Number.parseInt(userRedemptionResult.rows[0].total_redeemed)
+      const thisOfferRedemptionResult = await pool.query(thisOfferRedemptionQuery, [offer_id, user_id])
+      const thisOfferRedeemed = Number.parseInt(thisOfferRedemptionResult.rows[0].total_redeemed)
 
-      if (totalRedeemed + quantity > (offer.max_per_user || offer.quantity_per_user)) {
+      if (thisOfferRedeemed + quantity > offer.quantity_per_user) {
         return sendResponse(req, res, 200, responseCode.OPERATION_FAILED, { keyword: "redemption_limit_exceeded" }, {})
+      }
+
+      const totalRedemptionQuery = `
+        SELECT COALESCE(SUM(quantity), 0) as total_redeemed 
+        FROM tbl_redemptions 
+        WHERE user_id = $1 AND is_active = TRUE AND is_deleted = FALSE
+      `
+
+      const totalRedemptionResult = await pool.query(totalRedemptionQuery, [user_id])
+      const totalRedeemed = Number.parseInt(totalRedemptionResult.rows[0].total_redeemed)
+
+      if (totalRedeemed + quantity > offer.user_redemption_limit) {
+        return sendResponse(req, res, 200, responseCode.OPERATION_FAILED, { keyword: "user_redemption_limit_exceeded" }, {})
       }
 
       const client = await pool.connect()
@@ -244,15 +270,15 @@ const redemption_model = {
       try {
         await client.query("BEGIN")
 
-        // Generate confirmation number
-        const confirmationNumber = `RDD${Date.now()}${Math.floor(Math.random() * 1000)
-          .toString()
-          .padStart(3, "0")}`
+        // // Generate confirmation number
+        // const confirmationNumber = `RDD${Date.now()}${Math.floor(Math.random() * 1000)
+        //   .toString()
+        //   .padStart(3, "0")}`
 
         // Create redemption record
         const redemptionQuery = `
                     INSERT INTO tbl_redemptions (
-                        offer_id, user_id, redemption_method, confirmation_number, 
+                        offer_id, user_id, redemption_method, 
                         quantity, total_amount
                     ) VALUES ($1, $2, 'delivery', $3, $4, $5)
                     RETURNING id, confirmation_number
@@ -263,7 +289,7 @@ const redemption_model = {
         const redemptionResult = await client.query(redemptionQuery, [
           offer_id,
           user_id,
-          confirmationNumber,
+          // confirmationNumber,
           quantity,
           totalAmount,
         ])
@@ -284,7 +310,7 @@ const redemption_model = {
           delivery_address_id,
           offer.delivery_fee || 0,
           offer.estimated_delivery_time,
-          special_request,
+          message,
         ])
 
         // Create notification for business owner

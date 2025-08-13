@@ -93,7 +93,7 @@ CREATE TABLE tbl_membership_plans (
     duration_days INTEGER NOT NULL, -- validity of the plan in days
     offer_limit INTEGER, -- total number of offers allowed to posted in plan
     offer_quantity_limit INTEGER, -- max quantity per offer
-    limit_per_user INTEGER, -- max redemption per user
+    -- limit_per_user INTEGER, -- max redemption per user
 
     redemption_limit INTEGER, -- renamed from 'redeemption_limit' (corrected typo)
     visibility_days INTEGER NOT NULL, -- max offer duration per post
@@ -249,7 +249,7 @@ CREATE TABLE tbl_delivery_addresses (
     FOREIGN KEY (user_id) REFERENCES tbl_users(id) ON DELETE CASCADE
 );
 
--- Redemptions (corrected enum)
+-- Redemptions
 CREATE TABLE tbl_redemptions (
     id BIGSERIAL PRIMARY KEY,
     offer_id BIGINT NOT NULL,
@@ -267,7 +267,7 @@ CREATE TABLE tbl_redemptions (
     FOREIGN KEY (offer_id) REFERENCES tbl_offers(id) ON DELETE CASCADE
 );
 
--- Redemption deliveries (corrected)
+-- Redemption deliveries 
 CREATE TABLE tbl_redemption_deliveries (
     id BIGSERIAL PRIMARY KEY,
     redemption_id BIGINT NOT NULL,
@@ -336,7 +336,7 @@ CREATE TABLE tbl_user_subscriptions (
     -- UNIQUE(user_id, business_id)
 );
 
--- Saved offers (wishlist)
+-- Saved offers
 CREATE TABLE tbl_saved_offers (
     id BIGSERIAL PRIMARY KEY,
     user_id BIGINT NOT NULL,
