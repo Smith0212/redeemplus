@@ -20,13 +20,26 @@ CREATE TABLE tbl_business_subcategories (
     FOREIGN KEY (category_id) REFERENCES tbl_business_categories(id) ON DELETE CASCADE
 );
 
--- Users table
+-- Country codes table
+CREATE TABLE tbl_country_codes (
+    id BIGSERIAL PRIMARY KEY,
+    country_code VARCHAR(6) NOT NULL,
+    country_name VARCHAR(64) NOT NULL,
+    currency VARCHAR(3) NOT NULL,
+    flag_icon_url VARCHAR(255),
+    is_active BOOLEAN DEFAULT TRUE,
+    is_deleted BOOLEAN DEFAULT FALSE,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Users table relation 
 CREATE TABLE tbl_users (
     id BIGSERIAL PRIMARY KEY,
     username VARCHAR(32) UNIQUE,
     email VARCHAR(255) UNIQUE,
     phone VARCHAR(20),
-    country_code VARCHAR(6),
+    country_code_id BIGINT,
     social_id VARCHAR(255),
     password TEXT,
     account_type VARCHAR(20) CHECK (account_type IN ('individual', 'business')),
@@ -93,7 +106,7 @@ CREATE TABLE tbl_membership_plans (
     duration_days INTEGER NOT NULL, -- validity of the plan in days
     offer_limit INTEGER, -- total number of offers allowed to posted in plan
     offer_quantity_limit INTEGER, -- max quantity per offer
-    -- limit_per_user INTEGER, -- max redemption per user
+    limit_per_user INTEGER, -- max redemption per user for single offer
 
     redemption_limit INTEGER, -- renamed from 'redeemption_limit' (corrected typo)
     visibility_days INTEGER NOT NULL, -- max offer duration per post
@@ -282,6 +295,8 @@ CREATE TABLE tbl_redemption_deliveries (
     FOREIGN KEY (redemption_id) REFERENCES tbl_redemptions(id) ON DELETE CASCADE,
     FOREIGN KEY (delivery_address_id) REFERENCES tbl_delivery_addresses(id) ON DELETE SET NULL
 );
+
+
 
 -- Reviews
 CREATE TABLE tbl_reviews (

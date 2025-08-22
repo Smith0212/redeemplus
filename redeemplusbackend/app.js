@@ -1,5 +1,5 @@
 require("dotenv").config()
-const con = require("./config/database") // Database connection setup
+// const con = require("./config/database") // Database connection setup
 const express = require("express")
 const cros = require("cors")
 

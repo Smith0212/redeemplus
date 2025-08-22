@@ -30,8 +30,7 @@ const offer_model = {
         offer_longitude,
         available_branches,
         valid_times = [],
-        user_acknowledgment,
-        offer_type,
+        user_acknowledgment
       } = req.body
 
       // Check user's membership and offer limits
@@ -58,8 +57,27 @@ const offer_model = {
         return sendResponse(req, res, 200, responseCode.OPERATION_FAILED, { keyword: "offer_limit_exceeded" }, {})
       }
 
-      // Check offer type is allowed for this membership
-      if (membership.allowed_offer_types && !membership.allowed_offer_types.includes(offer_type)) {
+      // Get offer category and subcategory names from offer_subcategory_id
+      const subcatQuery = `
+        SELECT osc.offer_subcategory_name, oc.offer_category_name
+        FROM tbl_offer_subcategories osc
+        JOIN tbl_offer_categories oc ON osc.offer_category_id = oc.id
+        WHERE osc.id = $1
+      `
+      const subcatResult = await pool.query(subcatQuery, [offer_subcategory_id])
+      if (subcatResult.rows.length === 0) {
+        return sendResponse(req, res, 400, responseCode.OPERATION_FAILED, { keyword: "invalid_offer_subcategory" }, {})
+      }
+      const { offer_category_name, offer_subcategory_name } = subcatResult.rows[0]
+
+      // Check offer type is allowed for this membership (by category or subcategory name)
+      if (
+        Array.isArray(membership.allowed_offer_types) &&
+        membership.allowed_offer_types.length > 0 &&
+        !membership.allowed_offer_types.some(type =>
+          type === offer_category_name || type === offer_subcategory_name
+        )
+      ) {
         return sendResponse(req, res, 200, responseCode.OPERATION_FAILED, { keyword: "offer_type_not_allowed" }, {})
       }
 
@@ -175,15 +193,25 @@ const offer_model = {
 
         const offer_id = offerResult.rows[0].id
 
-        // Add valid times if provided
+        // Add valid times if provided (convert to UTC before storing)
         if (valid_times && valid_times.length > 0) {
           for (const time of valid_times) {
+            // Assume time.start_time and time.end_time are in "HH:mm:ss" format (local time)
+            const startLocal = new Date(`1970-01-01T${time.start_time}`);
+            const endLocal = new Date(`1970-01-01T${time.end_time}`);
+
+            const startUTC = startLocal.toISOString().substring(11, 19); // Extract HH:mm:ss
+            const endUTC = endLocal.toISOString().substring(11, 19);
+
+            console.log("Inserting valid time:", startUTC, endUTC);
+
             await client.query(
               "INSERT INTO tbl_offer_valid_times (offer_id, valid_time_start, valid_time_end) VALUES ($1, $2, $3)",
-              [offer_id, time.start_time, time.end_time],
-            )
+              [offer_id, startUTC, endUTC]
+            );
           }
         }
+
 
         // Update user's offers used count
         await client.query(
@@ -272,7 +300,7 @@ const offer_model = {
           WHERE is_active = TRUE AND is_deleted = FALSE
           GROUP BY offer_id
         ) current_valid_times ON o.id = current_valid_times.offer_id`,
-      ] 
+      ]
 
       // Only show offers that either have no time restrictions or are currently valid
       whereConditions.push(`(current_valid_times.is_currently_valid = TRUE OR NOT EXISTS (
@@ -436,15 +464,14 @@ const offer_model = {
           COALESCE(rev.review_count, 0) as review_count,
           CASE WHEN so.id IS NOT NULL THEN TRUE ELSE FALSE END as is_saved,
           CASE WHEN us.id IS NOT NULL THEN TRUE ELSE FALSE END as is_subscribed,
-          ${
-            latitude && longitude
-              ? `
+          ${latitude && longitude
+          ? `
               (6371 * acos(cos(radians(${latitude})) * cos(radians(CAST(o.offer_latitude AS FLOAT))) * 
               cos(radians(CAST(o.offer_longitude AS FLOAT)) - radians(${longitude})) + 
               sin(radians(${latitude})) * sin(radians(CAST(o.offer_latitude AS FLOAT))))) as distance
             `
-              : "NULL as distance"
-          },
+          : "NULL as distance"
+        },
           -- Include valid days and times information
           o.valid_days,
           (

@@ -167,7 +167,7 @@ const redemption_model = {
           { keyword: "redemption_successful" },
           {
             redemption_id: redemption.id,
-            confirmation_number: redemption.confirmation_number,
+            // confirmation_number: redemption.confirmation_number,
             offer_title: offer.title,
             business_name: offer.business_name,
             quantity,
@@ -198,7 +198,7 @@ const redemption_model = {
       // Get offer details
       const offerQuery = `
                 SELECT 
-                    o.*, u.username as business_name, u.phone as business_phone,
+                    o.*, u.username as business_name, u.phone as business_phone
                 FROM tbl_offers o
                 JOIN tbl_users u ON o.user_id = u.id
                 WHERE o.id = $1 AND o.is_active = TRUE AND o.is_deleted = FALSE 
@@ -280,11 +280,11 @@ const redemption_model = {
                     INSERT INTO tbl_redemptions (
                         offer_id, user_id, redemption_method, 
                         quantity, total_amount
-                    ) VALUES ($1, $2, 'delivery', $3, $4, $5)
-                    RETURNING id, confirmation_number
+                    ) VALUES ($1, $2, 'delivery', $3, $4)
+                    RETURNING id
                 `
 
-        const totalAmount = offer.total_price * quantity + (offer.delivery_fee || 0)
+        const totalAmount = Number(offer.total_price) * quantity + (Number(offer.delivery_fee) || 0)
 
         const redemptionResult = await client.query(redemptionQuery, [
           offer_id,
@@ -341,13 +341,23 @@ const redemption_model = {
           { keyword: "delivery_request_sent" },
           {
             redemption_id: redemption.id,
-            confirmation_number: redemption.confirmation_number,
+            offer_image: offer.image,
             offer_title: offer.title,
-            business_name: offer.business_name,
+            offer_subtitle: offer.subtitle,
+            total_price: offer.total_price,
             quantity,
-            total_amount: totalAmount,
-            estimated_delivery_time: offer.estimated_delivery_time,
-          },
+            status: "pending",
+            business: {
+              name: offer.business_name,
+              profile_image: offer.business_profile_image,
+              badge_flag: offer.business_badge_flag,
+              social_links: offer.business_social_links,
+              avg_rating: offer.business_avg_rating,
+              is_subscribe: offer.business_is_subscribe,
+              latitude: offer.business_latitude,
+              longitude: offer.business_longitude,
+            },
+          }
         )
       } catch (err) {
         await client.query("ROLLBACK")
@@ -378,30 +388,31 @@ const redemption_model = {
       }
 
       const requestsQuery = `
-                SELECT 
-                    r.id as redemption_id, r.confirmation_number, r.quantity, r.total_amount, r.created_at,
-                    o.id as offer_id, o.title as offer_title, o.image as offer_image,
-                    u.id as customer_id, u.username as customer_name, u.profile_image as customer_image,
-                    u.phone as customer_phone,
-                    da.address, da.phone_number as delivery_phone,
-                    rd.id as delivery_id, rd.delivery_fee, rd.estimated_delivery_time, 
-                    rd.status, rd.message, rd.rejection_reason, rd.accepted_at, rd.delivered_at
-                FROM tbl_redemptions r
-                JOIN tbl_offers o ON r.offer_id = o.id
-                JOIN tbl_users u ON r.user_id = u.id
-                JOIN tbl_redemption_deliveries rd ON r.id = rd.redemption_id
-                JOIN tbl_delivery_addresses da ON rd.delivery_address_id = da.id
-                WHERE ${whereConditions.join(" AND ")} AND r.is_active = TRUE AND r.is_deleted = FALSE
-                ORDER BY r.created_at DESC
-                LIMIT $${paramIndex} OFFSET $${paramIndex + 1}
-            `
+        SELECT 
+          r.id as redemption_id, r.quantity, r.total_amount, r.created_at,
+          o.id as offer_id, o.title as offer_title, o.image as offer_image,
+          u.id as customer_id, u.username as customer_name, u.profile_image as customer_image,
+          u.phone as customer_phone,
+          da.address, da.phone_number as delivery_phone,
+          rd.id as delivery_id, rd.delivery_fee, rd.estimated_delivery_time, 
+          rd.status, rd.message, rd.rejection_reason, rd.accepted_at, rd.delivered_at,
+          rd.delivery_address_id
+        FROM tbl_redemptions r
+        JOIN tbl_offers o ON r.offer_id = o.id
+        JOIN tbl_users u ON r.user_id = u.id
+        JOIN tbl_redemption_deliveries rd ON r.id = rd.redemption_id
+        JOIN tbl_delivery_addresses da ON rd.delivery_address_id = da.id
+        WHERE ${whereConditions.join(" AND ")} AND r.is_active = TRUE AND r.is_deleted = FALSE
+        ORDER BY r.created_at DESC
+        LIMIT $${paramIndex} OFFSET $${paramIndex + 1}
+      `
 
       const countQuery = `
-                SELECT COUNT(*) as total FROM tbl_redemptions r
-                JOIN tbl_offers o ON r.offer_id = o.id
-                JOIN tbl_redemption_deliveries rd ON r.id = rd.redemption_id
-                WHERE ${whereConditions.join(" AND ")} AND r.is_active = TRUE AND r.is_deleted = FALSE
-            `
+        SELECT COUNT(*) as total FROM tbl_redemptions r
+        JOIN tbl_offers o ON r.offer_id = o.id
+        JOIN tbl_redemption_deliveries rd ON r.id = rd.redemption_id
+        WHERE ${whereConditions.join(" AND ")} AND r.is_active = TRUE AND r.is_deleted = FALSE
+      `
 
       queryParams.push(limit, offset)
 
@@ -413,6 +424,18 @@ const redemption_model = {
       const requests = requestsResult.rows
       const total = Number.parseInt(countResult.rows[0].total)
 
+      // Fetch all tbl_redemption_deliveries for these redemption_ids
+      const redemptionIds = requests.map(r => r.redemption_id)
+      let deliveries = []
+      if (redemptionIds.length > 0) {
+        const deliveriesQuery = `
+          SELECT * FROM tbl_redemption_deliveries
+          WHERE redemption_id = ANY($1)
+        `
+        const deliveriesResult = await pool.query(deliveriesQuery, [redemptionIds])
+        deliveries = deliveriesResult.rows
+      }
+
       return sendResponse(
         req,
         res,
@@ -421,6 +444,7 @@ const redemption_model = {
         { keyword: "success" },
         {
           requests,
+          deliveries, // all related tbl_redemption_deliveries data
           pagination: {
             current_page: page,
             total_pages: Math.ceil(total / limit),
@@ -664,7 +688,7 @@ const redemption_model = {
 
       const redemptionsQuery = `
                 SELECT 
-                    r.id, r.confirmation_number, r.redemption_method, r.quantity, 
+                    r.id, r.redemption_method, r.quantity, 
                     r.total_amount, r.created_at,
                     o.id as offer_id, o.title as offer_title, o.image as offer_image,
                     u.id as business_id, u.username as business_name, u.profile_image as business_image,

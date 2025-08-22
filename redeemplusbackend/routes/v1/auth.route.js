@@ -13,7 +13,7 @@ router.post("/signup", checkApiKey, validateJoi(Joi.object({
     username: Joi.string().max(32).required(),
     email: Joi.string().email().max(255).required(),
     phone: Joi.string().max(20).required(),
-    country_code: Joi.string().max(6).required(),
+    country_code_id: Joi.string().max(6).required(),
     password: Joi.string().required(),
     account_type: Joi.string().valid('individual', 'business').required(),
     signup_type: Joi.string().valid('s', 'g', 'a', 'f').required(), // s: standard, g: google, a: apple, f: facebook

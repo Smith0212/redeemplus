@@ -6,7 +6,7 @@ const router = express.Router()
 
 // Redeem with PIN code
 router.post(
-  "/redeemwithpin",
+  "/redeemWithPin",
   checkApiKey,
   checkToken,
   validateJoi(
@@ -21,7 +21,7 @@ router.post(
 
 // Request delivery
 router.post(
-  "/requestdelivery",
+  "/requestDelivery",
   checkApiKey,
   checkToken,
   validateJoi(
@@ -29,7 +29,7 @@ router.post(
       offer_id: Joi.number().required(),
       delivery_address_id: Joi.number().required(),
       quantity: Joi.number().min(1).optional(),
-      special_request: Joi.string().optional(),
+      message: Joi.string().optional(),
     }),
   ),
   redemptionModel.requestDelivery,
@@ -37,7 +37,7 @@ router.post(
 
 // Get delivery requests (for business owners)
 router.post(
-  "/getdeliveryrequests",
+  "/getDeliveryRequests",
   checkApiKey,
   checkToken,
   validateJoi(
@@ -52,7 +52,7 @@ router.post(
 
 // Approve delivery request
 router.post(
-  "/approvedelivery",
+  "/approveDelivery",
   checkApiKey,
   checkToken,
   validateJoi(
@@ -79,7 +79,7 @@ router.post(
 
 // Mark as delivered
 router.post(
-  "/markdelivered",
+  "/markDelivered",
   checkApiKey,
   checkToken,
   validateJoi(

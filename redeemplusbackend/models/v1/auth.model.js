@@ -18,10 +18,10 @@ let auth_model = {
                 email,
                 password,
                 social_id,
-                country_code = '+91',
+                country_code_id, 
                 phone,
                 account_type,
-                signup_type = 's',
+                signup_type = 's', // s - simple, g - google, f - facebook, a - apple
                 profile_image = null,
                 business_subcategory_id = null,
                 business_address = null,
@@ -50,6 +50,22 @@ let auth_model = {
                 return sendResponse(req, res, 400, responseCode.OPERATION_FAILED, { keyword: 'missing_email_or_password' }, {});
             }
 
+            if (!country_code_id) {
+                return sendResponse(req, res, 400, responseCode.OPERATION_FAILED, { keyword: 'missing_country_code_id' }, {});
+            }
+
+            // Validate country_code_id
+            const countryQuery = `
+            SELECT country_code 
+            FROM tbl_country_codes 
+            WHERE id = $1 AND is_active = TRUE AND is_deleted = FALSE
+        `;
+            const { rows: countryRows } = await pool.query(countryQuery, [country_code_id]);
+            if (countryRows.length === 0) {
+                return sendResponse(req, res, 400, responseCode.OPERATION_FAILED, { keyword: 'invalid_country_code_id' }, {});
+            }
+            const resolvedCountryCode = countryRows[0].country_code;
+
             // Check for existing user by username OR email
             const checkUserQuery = `
             SELECT id, username, email, is_verified, signup_type 
@@ -57,26 +73,23 @@ let auth_model = {
             WHERE (username = $1 OR email = $2) AND is_active = TRUE AND is_deleted = FALSE
         `;
             const { rows } = await pool.query(checkUserQuery, [username, email]);
-
             const existingUser = rows[0];
 
             if (existingUser) {
                 const { signup_type: existingType, is_verified } = existingUser;
 
                 if (existingUser.username === username || existingUser.email === email) {
-                    // Check for OTP resend condition (simple signup and unverified)
                     if (existingType === 's' && !is_verified) {
                         const otpData = await sendOTP(email);
                         return sendResponse(req, res, 200, responseCode.OPERATION_FAILED, { keyword: 'not_verified_otp_sent' }, otpData);
                     }
-
                     return sendResponse(req, res, 200, responseCode.OPERATION_FAILED, {
                         keyword: existingUser.email === email ? 'email_already_exists' : 'username_already_exists'
                     }, {});
                 }
             }
 
-            // For social signup, validate and ensure social_id is unique
+            // For social signup
             if (signup_type !== 's') {
                 if (!social_id) {
                     return sendResponse(req, res, 400, responseCode.OPERATION_FAILED, { keyword: 'missing_social_id' }, {});
@@ -97,7 +110,7 @@ let auth_model = {
 
             const insertUserQuery = `
             INSERT INTO tbl_users 
-            (username, email, password, country_code, phone, account_type, signup_type, social_id, profile_image, 
+            (username, email, password, country_code_id, phone, account_type, signup_type, social_id, profile_image, 
              is_verified, step, business_subcategory_id, business_address, street, postal_code, zone)
             VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16)
             RETURNING id
@@ -106,7 +119,7 @@ let auth_model = {
                 username,
                 signup_type === 's' ? email : null,
                 hashedPassword,
-                country_code,
+                country_code_id,
                 phone,
                 account_type,
                 signup_type,
@@ -125,6 +138,7 @@ let auth_model = {
 
             const user_token = jwt.sign({ user_id: newUserId }, process.env.JWT_SECRET_KEY, { expiresIn: '7d' });
 
+            // Insert device info
             const insertDeviceQuery = `
             INSERT INTO tbl_device_info 
             (user_id, device_type, device_name, os_version, app_version, user_token, device_token, timezone)
@@ -141,7 +155,7 @@ let auth_model = {
                 timezone
             ]);
 
-            // Insert into tbl_delivery_addresses
+            // Insert into tbl_delivery_addresses using resolved country_code
             const insertAddressQuery = `
             INSERT INTO tbl_delivery_addresses
             (user_id, address, street, postal_code, zone, latitude, longitude, country_code, phone_number, is_default)
@@ -155,7 +169,7 @@ let auth_model = {
                 zone,
                 latitude,
                 longitude,
-                country_code,
+                resolvedCountryCode,
                 phone
             ]);
 
@@ -172,6 +186,7 @@ let auth_model = {
             return sendResponse(req, res, 500, responseCode.OPERATION_FAILED, { keyword: 'unsuccess' }, err.message);
         }
     },
+
 
     async verifyOtp(req, res) {
         try {
@@ -227,7 +242,7 @@ let auth_model = {
             const {
                 username,
                 email,
-                country_code,
+                country_code_id,
                 phone,
                 profile_image,
                 business_subcategory_id,
@@ -291,9 +306,9 @@ let auth_model = {
                 fields.push(`email = $${idx++}`);
                 values.push(email);
             }
-            if (country_code !== undefined) {
-                fields.push(`country_code = $${idx++}`);
-                values.push(country_code);
+            if (country_code_id !== undefined) {
+                fields.push(`country_code_id = $${idx++}`);
+                values.push(country_code_id);
             }
             if (phone !== undefined) {
                 fields.push(`phone = $${idx++}`);
@@ -361,7 +376,7 @@ let auth_model = {
             const updateQuery = `
             UPDATE tbl_users SET ${fields.join(', ')}
             WHERE id = $${idx}
-            RETURNING id, username, email, country_code, phone, profile_image, 
+            RETURNING id, username, email, country_code_id, phone, profile_image, 
                       business_subcategory_id, dob, instagram_url, tiktok_url, 
                       whatsapp_url, business_address, street, postal_code, zone,
                       map_url, latitude, longitude

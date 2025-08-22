@@ -10,8 +10,8 @@ var ar = require('../language/ar');
 
 var con = require('../config/database');
 
-var cryptoLib = require('cryptlib')
-var shaKey = cryptoLib.getHashSha256(process.env.KEY, 32)
+// var cryptoLib = require('cryptlib')
+// var shaKey = cryptoLib.getHashSha256(process.env.KEY, 32)
 
 var bypassMethods = new Array("login", "signup", "webhook");
 
